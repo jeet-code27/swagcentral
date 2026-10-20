@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fdfbf7;
+  --foreground: #111827;
+  --primary-orange: #ff5500;
+  --primary-yellow: #facc15;
+  --dark-banner: #0d1117;
+}
+
+@theme {
+  --font-heading: var(--font-unbounded), sans-serif;
+  --font-body: var(--font-albert-sans), sans-serif;
+  --font-price: var(--font-unbounded), sans-serif;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-albert-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Headings and Price use Unbounded */
+h1, h2, h3, h4, .font-heading, .font-unbounded {
+  font-family: var(--font-unbounded), system-ui, sans-serif;
+}
+
+.font-price {
+  font-family: var(--font-unbounded), monospace, sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-albert-sans), sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #ff5500;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #e04b00;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Infinite Ticker Animation */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  display: flex;
+  width: 200%;
+  animation: ticker 25s linear infinite;
+}
+
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Product Description & Content Styling */
+.product-description-content {
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+.product-description-content p {
+  margin-bottom: 1.25rem;
+}
+
+.product-description-content p:last-child {
+  margin-bottom: 0;
+}
+
+.product-description-content strong {
+  color: #111827;
+  font-weight: 700;
+}
+
+.product-description-content h2,
+.product-description-content h3 {
+  font-family: var(--font-unbounded), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.product-description-content h2 {
+  font-size: 1.35rem;
+  border-left: 4px solid #ff5500;
+  padding-left: 0.85rem;
+}
+
+.product-description-content h3 {
+  font-size: 1.15rem;
+}
+
+.product-description-content del {
+  color: #9ca3af;
+  font-weight: 700;
+  margin-right: 0.5rem;
+  text-decoration: line-through;
+}
+
+.product-description-content ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.product-description-content ul li {
+  position: relative;
+  padding-left: 1.75rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.product-description-content ul li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #ff5500;
+  font-weight: 900;
+}
+
+.product-description-content hr {
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+/* Feature Grid for Emoji / Bullet Highlights */
+.product-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.product-feature-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.85rem 1.15rem;
+  background: linear-gradient(135deg, rgba(255, 85, 0, 0.04), rgba(250, 204, 21, 0.06));
+  border: 1px solid rgba(255, 85, 0, 0.16);
+  border-radius: 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.product-feature-pill:hover {
+  border-color: #ff5500;
+  background: linear-gradient(135deg, rgba(255, 85, 0, 0.08), rgba(250, 204, 21, 0.1));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.08);
+}
+
