@@ -98,7 +98,7 @@ export default function AdminLayout({
           {/* Logo with transparent image */}
           <Link href="/" className="flex flex-col gap-2">
             <img
-              src="/images/swagat_central_transparent.png"
+              src="/images/logo.webp"
               alt="SwagCentral"
               className="h-10 w-auto object-contain"
             />

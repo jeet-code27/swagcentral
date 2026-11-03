@@ -4,6 +4,9 @@ import { Product } from "@/models/Product";
 import { Category } from "@/models/Category";
 import { uploadRemoteImageToCloudinary } from "@/lib/cloudinary";
 import { XMLParser } from "fast-xml-parser";
+import { requireAdmin } from "@/lib/auth";
+import { revalidateTag } from "next/cache";
+import { CATALOG_TAG } from "@/lib/catalog";
 
 interface ParsedWPProduct {
   title: string;
@@ -18,6 +21,9 @@ interface ParsedWPProduct {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof Response) return auth;
+
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -171,6 +177,9 @@ export async function POST(req: NextRequest) {
         progressLogs.push(`⚠️ Error saving ${p.title}: ${(prodErr as Error).message}`);
       }
     }
+
+    // Refresh the cached storefront catalog
+    revalidateTag(CATALOG_TAG, { expire: 0 });
 
     return NextResponse.json({
       success: true,

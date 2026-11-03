@@ -19,7 +19,8 @@ export default function SaveMoreDeals() {
           {/* Deal 1 */}
           <div className="relative rounded-2xl overflow-hidden shadow-xl bg-gray-950 min-h-[380px] flex flex-col justify-end p-8 border border-gray-800 group">
             <img
-              src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80"
+              src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=70"
+              loading="lazy"
               alt="AI Prompts on Sale"
               className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-700"
             />
@@ -50,7 +51,8 @@ export default function SaveMoreDeals() {
           {/* Deal 2 */}
           <div className="relative rounded-2xl overflow-hidden shadow-xl bg-gray-950 min-h-[380px] flex flex-col justify-end p-8 border border-gray-800 group">
             <img
-              src="https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=1000&q=80"
+              src="https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=70"
+              loading="lazy"
               alt="Canva Template Packs"
               className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-700"
             />

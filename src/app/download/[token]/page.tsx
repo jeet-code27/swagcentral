@@ -14,62 +14,79 @@ import {
   ShieldCheck,
   Headphones,
   Loader2,
+  Clock,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { cdnImage } from "@/lib/image";
 
+
+interface DownloadItem {
+  title: string;
+  thumbnail?: string;
+  price: number;
+  deliveryType: "link" | "pdf" | "both";
+  accessUrl?: string;
+  pdfFileName?: string;
+}
+
+type OrderState = "loading" | "notfound" | "pending" | "delivered" | "cancelled";
 
 function DownloadContent() {
   const params = useParams();
   const token = params?.token as string;
-  const [downloadItems, setDownloadItems] = useState<any[]>([]);
+  const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
+  const [orderState, setOrderState] = useState<OrderState>("loading");
+  const [orderId, setOrderId] = useState("");
 
   useEffect(() => {
-    // Shoot celebratory confetti
-    try {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-    } catch (e) {
-      // Ignore if canvas-confetti is not loaded
-    }
-
-    // Load from DB or default mock items
-    fetch(`/api/order/status?token=${token}`)
+    fetch(`/api/order/status?token=${encodeURIComponent(token)}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data && data.order && data.order.items) {
-          setDownloadItems(data.order.items);
-        } else {
-          // Fallback demo items
-          setDownloadItems([
-            {
-              title: "The Ultimate Claude Bundle – 2,000+ Skills & Agents",
-              price: 499,
-              deliveryType: "both",
-              accessUrl: "https://drive.google.com/drive/folders/swagcentral-demo",
-              pdfFileName: "Claude_Bundle_Starter_Guide.pdf",
-              thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80",
-            },
-          ]);
+        if (!data?.order) {
+          setOrderState("notfound");
+          return;
+        }
+        setOrderId(data.order.orderId);
+        setDownloadItems(data.order.items || []);
+        setOrderState(data.order.orderStatus || "pending");
+
+        if (data.order.orderStatus === "delivered") {
+          try {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+          } catch {
+            // Ignore if canvas-confetti is not loaded
+          }
         }
       })
-      .catch(() => {
-        // Fallback demo
-        setDownloadItems([
-          {
-            title: "The Ultimate Claude Bundle – 2,000+ Skills & Agents",
-            price: 499,
-            deliveryType: "both",
-            accessUrl: "https://drive.google.com/drive/folders/swagcentral-demo",
-            pdfFileName: "Claude_Bundle_Starter_Guide.pdf",
-            thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=400&q=80",
-          },
-        ]);
-      });
+      .catch(() => setOrderState("notfound"));
   }, [token]);
+
+  if (orderState === "loading") {
+    return (
+      <div className="flex-1 flex items-center justify-center py-20 text-gray-500">
+        <Loader2 size={32} className="animate-spin text-[#ff5500]" />
+      </div>
+    );
+  }
+
+  if (orderState === "notfound") {
+    return (
+      <main className="flex-1 max-w-xl mx-auto w-full px-4 py-20 text-center space-y-4">
+        <h1 className="font-unbounded font-black text-2xl uppercase text-gray-950">Order Not Found</h1>
+        <p className="text-sm text-gray-600">
+          This link is invalid or has expired. Please check the link in your email or contact support on
+          WhatsApp +91 9821774565.
+        </p>
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-unbounded font-bold text-[#ff5500] uppercase">
+          <ArrowLeft size={14} /> Back to Store
+        </Link>
+      </main>
+    );
+  }
+
+  const isDelivered = orderState === "delivered";
+  const isCancelled = orderState === "cancelled";
 
   return (
     <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-12">
@@ -78,31 +95,48 @@ function DownloadContent() {
         {/* Header Banner */}
         <div className="bg-[#111111] text-white p-8 text-center relative overflow-hidden">
           <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-500/30">
-            <CheckCircle size={36} />
+            {isDelivered ? <CheckCircle size={36} /> : <Clock size={36} />}
           </div>
 
           <h1 className="font-unbounded font-black text-2xl sm:text-3xl uppercase tracking-tight text-white">
-            PAYMENT CONFIRMED!
+            {isDelivered ? "ORDER DELIVERED!" : isCancelled ? "ORDER CANCELLED" : "ORDER RECEIVED!"}
           </h1>
           <p className="font-unbounded font-bold text-xs sm:text-sm text-[#ff5500] uppercase mt-1 tracking-wider">
-            YOUR DIGITAL PRODUCTS ARE READY
+            {isDelivered
+              ? "YOUR DIGITAL PRODUCTS ARE READY"
+              : isCancelled
+              ? "PLEASE CONTACT SUPPORT FOR HELP"
+              : "WE'LL EMAIL YOUR PRODUCTS SHORTLY"}
           </p>
+          {orderId && <p className="text-[11px] text-gray-400 mt-2 font-mono">Order ID: {orderId}</p>}
 
-          <div className="mt-4 inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-xs text-gray-200">
-            <Mail size={14} className="text-yellow-400" />
-            <span>We also sent a backup access copy to your email inbox!</span>
-          </div>
+          {!isCancelled && (
+            <div className="mt-4 inline-flex items-center gap-2 bg-white/10 px-4 py-1.5 rounded-full text-xs text-gray-200">
+              <Mail size={14} className="text-yellow-400" />
+              <span>
+                {isDelivered
+                  ? "We also sent your access links to your email inbox!"
+                  : "An order confirmation has been sent to your email."}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Product Items Access Box */}
         <div className="p-6 md:p-8 space-y-6">
           <div className="flex items-center justify-between border-b border-gray-100 pb-3">
             <h2 className="font-unbounded font-bold text-sm text-gray-900 uppercase">
-              Your Purchased Digital Bundles
+              {isDelivered ? "Your Purchased Digital Bundles" : "Your Order Summary"}
             </h2>
-            <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-              <ShieldCheck size={14} /> Lifetime Access Granted
-            </span>
+            {isDelivered ? (
+              <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                <ShieldCheck size={14} /> Lifetime Access Granted
+              </span>
+            ) : !isCancelled ? (
+              <span className="text-xs text-amber-600 font-semibold flex items-center gap-1">
+                <Clock size={14} /> Delivery Pending
+              </span>
+            ) : null}
           </div>
 
           <div className="space-y-4">
@@ -113,8 +147,9 @@ function DownloadContent() {
               >
                 <div className="flex items-center gap-4">
                   {item.thumbnail && (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={item.thumbnail}
+                      src={cdnImage(item.thumbnail, 160)}
                       alt={item.title}
                       className="w-16 h-16 rounded-lg object-contain bg-neutral-950 flex-shrink-0"
                     />
@@ -136,6 +171,9 @@ function DownloadContent() {
 
                 {/* Access Actions */}
                 <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                  {!isDelivered && (
+                    <span className="text-xs font-semibold text-gray-500">₹{item.price}</span>
+                  )}
                   {item.accessUrl && (
                     <a
                       href={item.accessUrl}
@@ -150,7 +188,7 @@ function DownloadContent() {
 
                   {item.pdfFileName && (
                     <a
-                      href={`/api/download/file?file=${item.pdfFileName}`}
+                      href={`/api/download/file?file=${encodeURIComponent(item.pdfFileName)}&token=${token}`}
                       download
                       className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-black hover:bg-gray-800 text-white text-xs font-unbounded font-bold px-4 py-2.5 rounded-lg transition shadow uppercase"
                     >

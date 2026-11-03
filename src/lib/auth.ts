@@ -1,7 +1,13 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.ADMIN_JWT_SECRET || "swagcentral_super_secret_jwt_key_2026_x89";
+function getJwtSecret(): string {
+  const secret = process.env.ADMIN_JWT_SECRET;
+  if (!secret) {
+    throw new Error("ADMIN_JWT_SECRET is not set in the environment");
+  }
+  return secret;
+}
 const COOKIE_NAME = "swagcentral_admin_token";
 
 export interface AdminTokenPayload {
@@ -14,15 +20,15 @@ export interface AdminTokenPayload {
 export function signAdminToken(email: string): string {
   return jwt.sign(
     { email, role: "super_admin" },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: "7d" }
   );
 }
 
 export function verifyAdminToken(token: string): AdminTokenPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET) as AdminTokenPayload;
-  } catch (e) {
+    return jwt.verify(token, getJwtSecret()) as AdminTokenPayload;
+  } catch {
     return null;
   }
 }
@@ -48,4 +54,15 @@ export async function setAdminSessionCookie(token: string) {
 export async function removeAdminSessionCookie() {
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
+}
+
+/**
+ * Guard for admin API routes. Returns a 401 response when not signed in.
+ */
+export async function requireAdmin(): Promise<AdminTokenPayload | Response> {
+  const session = await getAdminSession();
+  if (!session) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return session;
 }

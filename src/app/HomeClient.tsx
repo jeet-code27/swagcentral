@@ -13,7 +13,6 @@ import SaveMoreDeals from "@/components/SaveMoreDeals";
 import ReviewsSection from "@/components/ReviewsSection";
 import SocialAndCoupon from "@/components/SocialAndCoupon";
 import Footer from "@/components/Footer";
-import CartDrawer from "@/components/CartDrawer";
 
 interface HomeClientProps {
   initialProducts?: any[];
@@ -61,9 +60,6 @@ export default function HomeClient({
 
       {/* 12. Complete Footer */}
       <Footer />
-
-      {/* 13. Slide-over Cart & Checkout Drawer */}
-      <CartDrawer />
     </div>
   );
 }

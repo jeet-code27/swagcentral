@@ -1,8 +1,6 @@
 import React from "react";
 import { Metadata } from "next";
-import { connectDB } from "@/lib/db";
-import { Product } from "@/models/Product";
-import { Category } from "@/models/Category";
+import { getActiveProducts, getCategoriesWithCounts } from "@/lib/catalog";
 import HomeClient from "./HomeClient";
 
 export const instant = false;
@@ -23,19 +21,11 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  await connectDB();
-
-  let products = [];
-  let categories = [];
+  let products: Awaited<ReturnType<typeof getActiveProducts>> = [];
+  let categories: Awaited<ReturnType<typeof getCategoriesWithCounts>> = [];
 
   try {
-    const [pDocs, cDocs] = await Promise.all([
-      Product.find({ status: "active" }).sort({ createdAt: -1 }).lean(),
-      Category.find({}).sort({ orderIndex: 1 }).lean(),
-    ]);
-
-    products = JSON.parse(JSON.stringify(pDocs));
-    categories = JSON.parse(JSON.stringify(cDocs));
+    [products, categories] = await Promise.all([getActiveProducts(), getCategoriesWithCounts()]);
   } catch (err) {
     console.warn("DB load error on homepage, using client fallbacks:", err);
   }

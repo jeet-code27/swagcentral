@@ -1,12 +1,22 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { X, Check, ShieldCheck, Zap, FileText, ExternalLink, Star } from "lucide-react";
 import { ProductItem } from "@/data/mockData";
 import { useCart } from "@/context/CartContext";
+import { cdnImage } from "@/lib/image";
+
+function toPlainText(html: string) {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\\[rn]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 interface ProductQuickViewModalProps {
-  product: ProductItem;
+  product: ProductItem & { _id?: string; shortDescription?: string };
   onClose: () => void;
 }
 
@@ -14,11 +24,12 @@ export default function ProductQuickViewModal({
   product,
   onClose,
 }: ProductQuickViewModalProps) {
-  const { addToCart, setIsCartOpen } = useCart();
+  const { addToCart } = useCart();
+  const router = useRouter();
 
   const handleInstantBuy = () => {
     addToCart({
-      id: product.id,
+      id: product._id || product.id || product.slug,
       slug: product.slug,
       title: product.title,
       price: product.price,
@@ -26,9 +37,9 @@ export default function ProductQuickViewModal({
       thumbnail: product.thumbnail,
       category: product.category,
       deliveryType: product.deliveryType,
-    });
+    }, { silent: true });
     onClose();
-    setIsCartOpen(true);
+    router.push("/checkout");
   };
 
   return (
@@ -47,7 +58,7 @@ export default function ProductQuickViewModal({
             {/* Image preview */}
             <div className="relative aspect-square rounded-xl overflow-hidden bg-neutral-950 shadow-md flex items-center justify-center">
               <img
-                src={product.thumbnail}
+                src={cdnImage(product.thumbnail, 700)}
                 alt={product.title}
                 className="w-full h-full object-contain"
               />
@@ -129,7 +140,7 @@ export default function ProductQuickViewModal({
                 Product Description
               </h4>
               <p className="text-sm text-gray-600 leading-relaxed">
-                {product.description}
+                {toPlainText(product.shortDescription || product.description || "").slice(0, 400)}
               </p>
             </div>
 

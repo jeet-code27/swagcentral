@@ -5,8 +5,13 @@ export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
-    const expectedEmail = process.env.ADMIN_EMAIL || "swagcentral012@gmail.com";
-    const expectedPassword = process.env.ADMIN_PASSWORD || "admin@swag2026";
+    const expectedEmail = process.env.ADMIN_EMAIL;
+    const expectedPassword = process.env.ADMIN_PASSWORD;
+
+    if (!expectedEmail || !expectedPassword) {
+      console.error("ADMIN_EMAIL / ADMIN_PASSWORD are not set in the environment");
+      return NextResponse.json({ error: "Admin login is not configured" }, { status: 500 });
+    }
 
     if (!email || !password) {
       return NextResponse.json(

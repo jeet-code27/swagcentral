@@ -21,6 +21,9 @@ export interface IOrder extends Document {
   paymentStatus: "pending" | "completed" | "failed";
   paymentMethod: string;
   paymentId?: string;
+  orderStatus: "pending" | "delivered" | "cancelled";
+  confirmationEmailSent: boolean;
+  deliveredAt?: Date;
   emailSent: boolean;
   emailSentAt?: Date;
   downloadToken: string;
@@ -58,6 +61,14 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentMethod: { type: String, default: "Online" },
     paymentId: { type: String, default: "" },
+    orderStatus: {
+      type: String,
+      enum: ["pending", "delivered", "cancelled"],
+      default: "pending",
+      index: true,
+    },
+    confirmationEmailSent: { type: Boolean, default: false },
+    deliveredAt: { type: Date },
     emailSent: { type: Boolean, default: false },
     emailSentAt: { type: Date },
     downloadToken: { type: String, required: true, unique: true },

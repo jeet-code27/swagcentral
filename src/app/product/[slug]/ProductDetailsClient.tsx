@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Star,
   Check,
@@ -17,6 +18,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import ProductCard from "@/components/ProductCard";
 import { formatProductDescription, formatShortDescription } from "@/lib/formatter";
+import { cdnImage } from "@/lib/image";
 
 interface ProductDetailsClientProps {
   product: any;
@@ -27,7 +29,8 @@ export default function ProductDetailsClient({
   product,
   relatedProducts,
 }: ProductDetailsClientProps) {
-  const { addToCart, setIsCartOpen } = useCart();
+  const { addToCart } = useCart();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"description" | "features" | "license">("description");
   const [added, setAdded] = useState(false);
 
@@ -56,8 +59,8 @@ export default function ProductDetailsClient({
       thumbnail: product.thumbnail,
       category: product.category,
       deliveryType: product.deliveryType || "both",
-    });
-    setIsCartOpen(true);
+    }, { silent: true });
+    router.push("/checkout");
   };
 
   return (
@@ -88,7 +91,8 @@ export default function ProductDetailsClient({
         <div className="lg:col-span-5 space-y-4">
           <div className="relative aspect-square rounded-2xl overflow-hidden bg-neutral-950 border border-gray-100 shadow-lg group flex items-center justify-center">
             <img
-              src={product.thumbnail}
+              src={cdnImage(product.thumbnail, 900)}
+              fetchPriority="high"
               alt={product.title}
               className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
             />

@@ -14,7 +14,7 @@ export default function Footer() {
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-block">
               <img
-                src="/images/swagat_central_transparent.png"
+                src="/images/logo.webp"
                 alt="SwagCentral Logo"
                 className="h-12 w-auto object-contain"
               />

@@ -6,7 +6,7 @@ import { Search, User, Heart, ShoppingBag, Phone, Menu, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export default function Header() {
-  const { totalItems, setIsCartOpen } = useCart();
+  const { totalItems } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -45,7 +45,7 @@ export default function Header() {
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group">
           <img
-            src="/images/swagat_central_transparent.png"
+            src="/images/logo.webp"
             alt="SwagCentral Logo"
             className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105"
           />
@@ -88,8 +88,8 @@ export default function Header() {
             <User size={20} />
           </Link>
 
-          <button
-            onClick={() => setIsCartOpen(true)}
+          <Link
+            href="/checkout"
             className="p-2 text-gray-700 hover:text-[#ff5500] transition rounded-full hover:bg-gray-100 relative"
             aria-label="View Cart"
           >
@@ -99,7 +99,7 @@ export default function Header() {
                 {totalItems}
               </span>
             )}
-          </button>
+          </Link>
 
           {/* Mobile hamburger */}
           <button

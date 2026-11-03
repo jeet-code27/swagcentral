@@ -2,11 +2,9 @@ import React from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { connectDB } from "@/lib/db";
-import { Product, IProduct } from "@/models/Product";
+import { getAllProductSlugs, getProductBySlug, getRelatedProducts } from "@/lib/catalog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import CartDrawer from "@/components/CartDrawer";
 import ProductDetailsClient from "@/app/product/[slug]/ProductDetailsClient";
 
 interface Props {
@@ -15,10 +13,18 @@ interface Props {
 
 export const instant = false;
 
+export async function generateStaticParams() {
+  try {
+    const slugs = await getAllProductSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  await connectDB();
-  const product = await Product.findOne({ slug });
+  const product = await getProductBySlug(slug);
 
   if (!product) {
     return {
@@ -57,26 +63,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SingleProductPage({ params }: Props) {
   const { slug } = await params;
-  await connectDB();
+  const product = await getProductBySlug(slug);
 
-  const productDoc = await Product.findOne({ slug }).lean();
-
-  if (!productDoc) {
+  if (!product) {
     notFound();
   }
 
-  // Convert MongoDB document to plain JSON
-  const product = JSON.parse(JSON.stringify(productDoc));
-
-  // Fetch related products in same category
-  const relatedDocs = await Product.find({
-    category: product.category,
-    slug: { $ne: product.slug },
-  })
-    .limit(4)
-    .lean();
-
-  const relatedProducts = JSON.parse(JSON.stringify(relatedDocs));
+  const relatedProducts = await getRelatedProducts(product.category, product.slug);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fdfbf7]">
@@ -86,7 +79,6 @@ export default async function SingleProductPage({ params }: Props) {
         relatedProducts={relatedProducts}
       />
       <Footer />
-      <CartDrawer />
     </div>
   );
 }

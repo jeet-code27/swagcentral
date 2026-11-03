@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { CATEGORIES as DEFAULT_CATEGORIES } from "@/data/mockData";
 import SwipeableContainer from "@/components/SwipeableContainer";
+import { cdnImage } from "@/lib/image";
 
 interface ShopByCategoryProps {
   categories?: any[];
@@ -52,7 +53,9 @@ export default function ShopByCategory({
                 >
                   <div className="w-full h-full rounded-full overflow-hidden relative bg-gray-900">
                     <img
-                      src={cat.image}
+                      src={cdnImage(cat.image, 400)}
+                      loading="lazy"
+                      decoding="async"
                       alt={cat.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-115"
                     />

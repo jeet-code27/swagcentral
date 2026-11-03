@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Star, ShoppingBag, Check, ExternalLink, FileText, Zap } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { cdnImage } from "@/lib/image";
 
 interface ProductCardProps {
   product: any;
@@ -42,8 +43,10 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
         className="block relative w-full aspect-square bg-neutral-950 overflow-hidden flex items-center justify-center"
       >
         <img
-          src={product.thumbnail}
+          src={cdnImage(product.thumbnail, 480)}
           alt={product.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
         />
 

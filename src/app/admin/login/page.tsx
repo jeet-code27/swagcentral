@@ -7,7 +7,7 @@ import { Lock, Mail, ShieldAlert, ArrowRight, Loader2, ArrowLeft } from "lucide-
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("swagcentral012@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [loading, setLoading] = useState(false);
@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
         <div className="text-center space-y-3">
           <div className="flex justify-center">
             <img
-              src="/images/swagat_central_transparent.png"
+              src="/images/logo.webp"
               alt="SwagCentral"
               className="h-14 w-auto object-contain"
             />
@@ -105,7 +105,7 @@ export default function AdminLoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="swagcentral012@gmail.com"
+                placeholder="Enter admin email..."
                 className="w-full bg-[#0a0f1d] border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#ff5500]"
               />
             </div>
@@ -126,12 +126,6 @@ export default function AdminLoginPage() {
                 className="w-full bg-[#0a0f1d] border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#ff5500]"
               />
             </div>
-          </div>
-
-          <div className="p-3 bg-gray-900/60 rounded-xl border border-gray-800 text-[11px] text-gray-400">
-            <span className="text-gray-300 font-semibold">Demo credentials:</span><br/>
-            Email: <code className="text-[#ff5500]">swagcentral012@gmail.com</code><br/>
-            Password: <code className="text-[#ff5500]">admin@swag2026</code>
           </div>
 
           <button

@@ -1,6 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { CheckCircle, X } from "lucide-react";
 
 export interface CartItem {
   id: string;
@@ -16,52 +18,63 @@ export interface CartItem {
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, "quantity">) => void;
+  /** Adds an item; pass `silent` to skip the "added to cart" toast (e.g. Buy Now). */
+  addToCart: (item: Omit<CartItem, "quantity">, options?: { silent?: boolean }) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
-  isCartOpen: boolean;
-  setIsCartOpen: (open: boolean) => void;
+  /** False until the saved cart has been read from localStorage. */
+  isLoaded: boolean;
   totalAmount: number;
+  totalOriginalAmount: number;
   totalItems: number;
 }
+
+const STORAGE_KEY = "swagcentral_cart";
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [toastItem, setToastItem] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load cart from localStorage on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("swagcentral_cart");
+      const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCart(JSON.parse(stored));
       }
     } catch (e) {
       console.error("Failed to parse cart storage", e);
     }
+    setIsLoaded(true);
   }, []);
 
-  // Sync to localStorage
+  // Sync to localStorage (only after the initial load, so we never overwrite the saved cart)
   useEffect(() => {
+    if (!isLoaded) return;
     try {
-      localStorage.setItem("swagcentral_cart", JSON.stringify(cart));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
     } catch (e) {
       console.error("Failed to save cart", e);
     }
-  }, [cart]);
+  }, [cart, isLoaded]);
 
-  const addToCart = (product: Omit<CartItem, "quantity">) => {
+  const addToCart: CartContextType["addToCart"] = (product, options) => {
     setCart((prev) => {
-      // Digital products typically only need quantity 1 per purchase
-      const exists = prev.find((item) => item.id === product.id);
-      if (exists) {
-        return prev;
-      }
+      // Digital products only need quantity 1 per purchase
+      if (prev.some((item) => item.id === product.id)) return prev;
       return [...prev, { ...product, quantity: 1 }];
     });
-    setIsCartOpen(true);
+
+    if (!options?.silent) {
+      setToastItem(product.title);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => setToastItem(null), 3500);
+    }
   };
 
   const removeFromCart = (id: string) => {
@@ -73,6 +86,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+  const totalOriginalAmount = cart.reduce(
+    (sum, item) => sum + Math.max(item.originalPrice || 0, item.price),
+    0
+  );
   const totalItems = cart.length;
 
   return (
@@ -82,13 +99,38 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         addToCart,
         removeFromCart,
         clearCart,
-        isCartOpen,
-        setIsCartOpen,
+        isLoaded,
         totalAmount,
+        totalOriginalAmount,
         totalItems,
       }}
     >
       {children}
+
+      {/* "Added to cart" toast */}
+      {toastItem && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 sm:w-96 z-50 bg-[#111111] text-white rounded-xl shadow-2xl border border-white/10 p-4 flex items-start gap-3 animate-fadeIn">
+          <CheckCircle size={20} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold">Added to cart</p>
+            <p className="text-[11px] text-gray-400 truncate">{toastItem}</p>
+            <Link
+              href="/checkout"
+              onClick={() => setToastItem(null)}
+              className="inline-block mt-2 bg-[#ff5500] hover:bg-[#e04b00] text-white text-[11px] font-unbounded font-bold px-3 py-1.5 rounded-lg uppercase transition"
+            >
+              Checkout Now
+            </Link>
+          </div>
+          <button
+            onClick={() => setToastItem(null)}
+            className="text-gray-400 hover:text-white"
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
     </CartContext.Provider>
   );
 }

@@ -3,20 +3,24 @@ import { connectDB } from "@/lib/db";
 import { Order } from "@/models/Order";
 
 export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const token = searchParams.get("token");
+  const token = req.nextUrl.searchParams.get("token");
+  if (!token) {
+    return NextResponse.json({ error: "Token required" }, { status: 400 });
+  }
 
-    if (!token) {
-      return NextResponse.json({ error: "Token required" }, { status: 400 });
+  try {
+    const conn = await connectDB();
+    if (!conn) {
+      return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
     }
 
-    await connectDB();
-    const order = await Order.findOne({ downloadToken: token });
-
+    const order = await Order.findOne({ downloadToken: token }).lean();
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
+
+    const orderStatus = order.orderStatus || "pending";
+    const delivered = orderStatus === "delivered";
 
     return NextResponse.json({
       success: true,
@@ -24,16 +28,22 @@ export async function GET(req: NextRequest) {
         orderId: order.orderId,
         customerName: order.customerName,
         customerEmail: order.customerEmail,
-        items: order.items,
+        // Access links are only revealed once the admin has sent the order
+        items: order.items.map((item) => ({
+          title: item.title,
+          thumbnail: item.thumbnail,
+          price: item.price,
+          deliveryType: item.deliveryType,
+          accessUrl: delivered ? item.accessUrl : "",
+          pdfFileName: delivered ? item.pdfFileName : "",
+        })),
         totalAmount: order.totalAmount,
-        paymentStatus: order.paymentStatus,
+        orderStatus,
         createdAt: order.createdAt,
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 500 }
-    );
+    console.error("Order status error:", error);
+    return NextResponse.json({ error: "Failed to load order" }, { status: 500 });
   }
 }

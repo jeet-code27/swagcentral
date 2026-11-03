@@ -1,11 +1,8 @@
 import React, { Suspense } from "react";
 import { Metadata } from "next";
-import { connectDB } from "@/lib/db";
-import { Product } from "@/models/Product";
-import { Category } from "@/models/Category";
+import { getActiveProducts, getCategoriesWithCounts } from "@/lib/catalog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import CartDrawer from "@/components/CartDrawer";
 import ShopClient from "@/app/shop/ShopClient";
 import { Loader2 } from "lucide-react";
 
@@ -26,15 +23,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ShopPage() {
-  await connectDB();
-
-  const [productsDocs, categoriesDocs] = await Promise.all([
-    Product.find({ status: "active" }).sort({ createdAt: -1 }).lean(),
-    Category.find({}).sort({ orderIndex: 1 }).lean(),
+  const [products, categories] = await Promise.all([
+    getActiveProducts(),
+    getCategoriesWithCounts(),
   ]);
-
-  const products = JSON.parse(JSON.stringify(productsDocs));
-  const categories = JSON.parse(JSON.stringify(categoriesDocs));
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fdfbf7]">
@@ -49,7 +41,6 @@ export default async function ShopPage() {
         <ShopClient initialProducts={products} categories={categories} />
       </Suspense>
       <Footer />
-      <CartDrawer />
     </div>
   );
 }

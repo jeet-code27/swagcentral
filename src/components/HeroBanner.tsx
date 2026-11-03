@@ -8,7 +8,7 @@ export default function HeroBanner() {
   const slides = [
     {
       id: 1,
-      image: "/images/hero-banner2.png",
+      image: "/images/hero-banner2.webp",
       badge: "2026 MEGA DIGITAL SALE",
       titleTop: "UP TO",
       discount: "-40%",
@@ -25,7 +25,7 @@ export default function HeroBanner() {
     },
     {
       id: 2,
-      image: "/images/hero-banner3 (2).png",
+      image: "/images/hero-banner3.webp",
       badge: "100% MASTER RESELL RIGHTS",
       titleTop: "START YOUR",
       discount: "DIGITAL BIZ",
@@ -75,6 +75,8 @@ export default function HeroBanner() {
             <img
               src={slide.image}
               alt={slide.subhead}
+              fetchPriority={index === 0 ? "high" : "low"}
+              loading={index === 0 ? "eager" : "lazy"}
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
 
