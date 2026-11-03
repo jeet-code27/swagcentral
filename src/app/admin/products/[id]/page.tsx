@@ -14,6 +14,7 @@ import {
   secondaryButton,
 } from "@/components/admin/AdminUI";
 import { cdnImage } from "@/lib/image";
+import { pdfDisplayName } from "@/lib/pdf";
 import { formatProductDescription } from "@/lib/formatter";
 
 interface ProductDetail {
@@ -239,7 +240,7 @@ export default function ProductViewPage() {
                   <span className="text-amber-400">Not added</span>
                 )}
               </DetailRow>
-              <DetailRow label="PDF File">{product.pdfFileName || <span className="text-gray-500">None</span>}</DetailRow>
+              <DetailRow label="PDF File">{product.pdfFileName ? pdfDisplayName(product.pdfFileName) : <span className="text-gray-500">None</span>}</DetailRow>
             </dl>
           </Card>
 

@@ -8,6 +8,7 @@ import {
   ErrorState,
   Field,
   ImageListInput,
+  PdfUploadInput,
   inputClass,
   primaryButton,
   secondaryButton,
@@ -263,13 +264,12 @@ export default function ProductForm({
               placeholder="https://drive.google.com/..."
             />
           </Field>
-          <Field label="PDF File Name" hint="Optional. Must exist in the server's public/downloads folder.">
-            <input
-              value={values.pdfFileName}
-              onChange={(e) => set("pdfFileName", e.target.value)}
-              className={inputClass}
-              placeholder="My_Guide.pdf"
-            />
+          <Field
+            group
+            label="PDF File"
+            hint="Optional. Stored privately on Cloudinary; customers can only download it after you send their order."
+          >
+            <PdfUploadInput value={values.pdfFileName} onChange={(v) => set("pdfFileName", v)} />
           </Field>
         </Card>
 

@@ -61,3 +61,16 @@ export async function uploadBase64ToCloudinary(
     return null;
   }
 }
+
+/**
+ * Short-lived signed download link for a private (authenticated) raw file, e.g. a product PDF.
+ */
+export function getPrivateRawDownloadUrl(publicId: string, expiresInSeconds = 600): string {
+  initCloudinary();
+  return cloudinary.utils.private_download_url(publicId, "", {
+    resource_type: "raw",
+    type: "authenticated",
+    attachment: true,
+    expires_at: Math.round(Date.now() / 1000) + expiresInSeconds,
+  });
+}

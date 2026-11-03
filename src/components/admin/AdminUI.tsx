@@ -2,8 +2,9 @@
 
 import React, { useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, ImagePlus, Loader2, Star, Trash2, Upload } from "lucide-react";
 import { cdnImage } from "@/lib/image";
+import { CLOUDINARY_PDF_PREFIX, isCloudinaryPdf, pdfDisplayName } from "@/lib/pdf";
 
 export const inputClass =
   "w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#ff5500]";
@@ -63,21 +64,25 @@ export function Field({
   label,
   hint,
   required,
+  group = false,
   children,
 }: {
   label: string;
   hint?: string;
   required?: boolean;
+  /** Render as a plain group instead of a <label> (for controls that contain buttons). */
+  group?: boolean;
   children: React.ReactNode;
 }) {
+  const Wrapper = group ? "div" : "label";
   return (
-    <label className="block space-y-1.5">
+    <Wrapper className="block space-y-1.5">
       <span className="block text-[11px] font-semibold text-gray-300">
         {label} {required && <span className="text-[#ff5500]">*</span>}
       </span>
       {children}
       {hint && <span className="block text-[10px] text-gray-500">{hint}</span>}
-    </label>
+    </Wrapper>
   );
 }
 
@@ -233,6 +238,88 @@ export function ImageListInput({
           </button>
         </div>
       </div>
+      {error && <p className="text-[11px] text-red-400">{error}</p>}
+    </div>
+  );
+}
+
+/**
+ * Uploads a PDF straight from the browser to Cloudinary (private storage) and returns
+ * the stored reference (`cloudinary:<public_id>`) through onChange.
+ */
+export function PdfUploadInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const upload = async (file: File | undefined) => {
+    if (!file) return;
+    setError("");
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Please choose a PDF file");
+      return;
+    }
+    setUploading(true);
+    try {
+      const signRes = await fetch("/api/admin/upload/pdf-signature", { method: "POST" });
+      const sign = await signRes.json();
+      if (!signRes.ok) throw new Error(sign.error || "Could not start upload");
+
+      const form = new FormData();
+      Object.entries(sign.fields as Record<string, string | number | boolean>).forEach(([k, v]) =>
+        form.append(k, String(v))
+      );
+      form.append("file", file);
+
+      const res = await fetch(sign.uploadUrl, { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || "Upload to Cloudinary failed");
+      onChange(`${CLOUDINARY_PDF_PREFIX}${data.public_id}`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUploading(false);
+      if (fileInput.current) fileInput.current.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {value ? (
+        <div className="flex items-center gap-2 bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2.5">
+          <FileText size={15} className="text-amber-400 flex-shrink-0" />
+          <span className="text-xs text-white truncate flex-1" title={pdfDisplayName(value)}>
+            {pdfDisplayName(value)}
+          </span>
+          {!isCloudinaryPdf(value) && <span className="text-[10px] text-gray-500">server file</span>}
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="p-1 text-gray-400 hover:text-red-400"
+            title="Remove PDF"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
+      ) : (
+        <p className="text-[11px] text-gray-500">No PDF uploaded.</p>
+      )}
+      <button
+        type="button"
+        onClick={() => fileInput.current?.click()}
+        disabled={uploading}
+        className={secondaryButton}
+      >
+        {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+        {uploading ? "Uploading PDF..." : value ? "Replace PDF" : "Upload PDF"}
+      </button>
+      <input
+        ref={fileInput}
+        type="file"
+        accept="application/pdf,.pdf"
+        className="hidden"
+        onChange={(e) => upload(e.target.files?.[0])}
+      />
       {error && <p className="text-[11px] text-red-400">{error}</p>}
     </div>
   );

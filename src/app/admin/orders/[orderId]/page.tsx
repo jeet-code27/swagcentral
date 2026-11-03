@@ -23,11 +23,13 @@ import {
   ErrorState,
   LoadingState,
   PageHeader,
+  PdfUploadInput,
   inputClass,
   primaryButton,
   secondaryButton,
 } from "@/components/admin/AdminUI";
 import { cdnImage } from "@/lib/image";
+import { pdfDisplayName } from "@/lib/pdf";
 
 interface OrderItem {
   productId: string;
@@ -282,13 +284,11 @@ export default function OrderDetailPage() {
                           }
                           className={inputClass}
                         />
-                        <input
-                          placeholder="PDF file name (optional)"
+                        <PdfUploadInput
                           value={draftItems[idx]?.pdfFileName || ""}
-                          onChange={(e) =>
-                            setDraftItems((prev) => prev.map((d, i) => (i === idx ? { ...d, pdfFileName: e.target.value } : d)))
+                          onChange={(v) =>
+                            setDraftItems((prev) => prev.map((d, i) => (i === idx ? { ...d, pdfFileName: v } : d)))
                           }
-                          className={inputClass}
                         />
                       </div>
                     ) : hasAccess(item) ? (
@@ -304,7 +304,7 @@ export default function OrderDetailPage() {
                             {item.accessUrl}
                           </a>
                         )}
-                        {item.pdfFileName && <div className="text-gray-300">PDF: {item.pdfFileName}</div>}
+                        {item.pdfFileName && <div className="text-gray-300">PDF: {pdfDisplayName(item.pdfFileName)}</div>}
                       </div>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-[11px] text-amber-400 font-semibold">

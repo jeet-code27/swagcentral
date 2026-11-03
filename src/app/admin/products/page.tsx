@@ -15,6 +15,7 @@ import {
   Eye,
 } from "lucide-react";
 import { cdnImage } from "@/lib/image";
+import Pagination, { usePagination } from "@/components/Pagination";
 
 interface AdminProduct {
   _id: string;
@@ -63,6 +64,11 @@ export default function AdminProductsPage() {
         p.category.toLowerCase().includes(q) ||
         (p.categoryName || "").toLowerCase().includes(q))
   );
+  const { page, totalPages, pageItems, rangeStart, rangeEnd, setPage } = usePagination(
+    filtered,
+    20,
+    `${search}|${missingOnly}`
+  );
 
   return (
     <div className="space-y-6">
@@ -108,7 +114,8 @@ export default function AdminProductsPage() {
             Missing access link only
           </label>
           <span className="text-xs font-semibold text-gray-400">
-            Showing {filtered.length} of {productList.length}
+            {filtered.length ? `${rangeStart}–${rangeEnd} of ${filtered.length}` : "0"}
+            {filtered.length !== productList.length && ` (filtered from ${productList.length})`}
           </span>
         </div>
       </div>
@@ -138,7 +145,7 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800/60 text-gray-300">
-                {filtered.map((prod) => (
+                {pageItems.map((prod) => (
                   <tr key={prod._id} className="hover:bg-gray-800/30 transition">
                     <td className="p-4">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -244,6 +251,11 @@ export default function AdminProductsPage() {
           </div>
           {filtered.length === 0 && (
             <p className="p-8 text-center text-xs text-gray-400">No products match.</p>
+          )}
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-gray-800">
+              <Pagination page={page} totalPages={totalPages} onChange={setPage} theme="dark" />
+            </div>
           )}
         </div>
       )}

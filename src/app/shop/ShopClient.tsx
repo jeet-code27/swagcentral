@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Filter, SlidersHorizontal, Sparkles, ChevronRight, X } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import SwipeableContainer from "@/components/SwipeableContainer";
+import Pagination, { usePagination } from "@/components/Pagination";
 import Link from "next/link";
 
 interface ShopClientProps {
@@ -69,6 +70,17 @@ export default function ShopClient({
         return 0; // featured / default
       });
   }, [initialProducts, selectedCategory, searchQuery, sortBy]);
+
+  const { page, totalPages, pageItems, rangeStart, rangeEnd, setPage } = usePagination(
+    filteredProducts,
+    24,
+    `${selectedCategory}|${searchQuery}|${sortBy}`
+  );
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    document.getElementById("shop-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-8 w-full flex-1">
@@ -183,7 +195,14 @@ export default function ShopClient({
       {/* Products Counter */}
       <div className="flex items-center justify-between text-xs text-gray-500 font-semibold px-1">
         <span>
-          Showing <strong>{filteredProducts.length}</strong> digital products
+          {filteredProducts.length > 0 ? (
+            <>
+              Showing <strong>{rangeStart}–{rangeEnd}</strong> of <strong>{filteredProducts.length}</strong> digital
+              products
+            </>
+          ) : (
+            <>No products</>
+          )}
         </span>
         {selectedCategory !== "all" && (
           <button
@@ -197,10 +216,13 @@ export default function ShopClient({
 
       {/* Product Grid */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {filteredProducts.map((p) => (
-            <ProductCard key={p._id || p.slug} product={p} />
-          ))}
+        <div className="space-y-10">
+          <div id="shop-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 scroll-mt-28">
+            {pageItems.map((p) => (
+              <ProductCard key={p._id || p.slug} product={p} />
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} onChange={goToPage} />
         </div>
       ) : (
         <div className="text-center py-20 bg-white rounded-3xl border border-gray-200/80 p-8 space-y-4 shadow-sm">

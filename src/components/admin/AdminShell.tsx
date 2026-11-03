@@ -91,7 +91,7 @@ export default function AdminShell({
       )}
 
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-[#0a0f1d] border-b md:border-b-0 md:border-r border-gray-800 p-6 flex flex-col justify-between flex-shrink-0">
+      <aside className="w-full md:w-64 bg-[#0a0f1d] border-b md:border-b-0 md:border-r border-gray-800 p-6 flex flex-col justify-between flex-shrink-0 md:sticky md:top-0 md:self-start md:h-screen md:overflow-y-auto">
         <div className="space-y-8">
           {/* Logo with transparent image */}
           <Link href="/" className="flex flex-col gap-2">
@@ -161,7 +161,7 @@ export default function AdminShell({
       </aside>
 
       {/* Main Content Area - Always Rendered */}
-      <main className="flex-1 overflow-y-auto p-6 md:p-10">{children}</main>
+      <main className="flex-1 min-w-0 p-6 md:p-10">{children}</main>
     </div>
   );
 }

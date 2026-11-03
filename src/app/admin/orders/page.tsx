@@ -17,6 +17,9 @@ import {
   Ban,
 } from "lucide-react";
 import { cdnImage } from "@/lib/image";
+import { pdfDisplayName } from "@/lib/pdf";
+import Pagination, { usePagination } from "@/components/Pagination";
+import { PdfUploadInput } from "@/components/admin/AdminUI";
 
 interface OrderItem {
   productId: string;
@@ -180,6 +183,7 @@ export default function AdminOrdersPage() {
       o.customerName.toLowerCase().includes(q)
     );
   });
+  const { page, totalPages, pageItems, setPage } = usePagination(filtered, 15, `${search}|${statusFilter}`);
 
   return (
     <div className="space-y-6">
@@ -259,7 +263,7 @@ export default function AdminOrdersPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {filtered.map((order) => {
+          {pageItems.map((order) => {
             const status = order.orderStatus || "pending";
             const isEditing = editingId === order.orderId;
             const isBusy = busyId === order.orderId;
@@ -384,16 +388,11 @@ export default function AdminOrdersPage() {
                               }
                               className="w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#ff5500]"
                             />
-                            <input
-                              type="text"
-                              placeholder="PDF file name (optional, from server downloads folder)"
+                            <PdfUploadInput
                               value={draftItems[idx]?.pdfFileName || ""}
-                              onChange={(e) =>
-                                setDraftItems((prev) =>
-                                  prev.map((d, i) => (i === idx ? { ...d, pdfFileName: e.target.value } : d))
-                                )
+                              onChange={(v) =>
+                                setDraftItems((prev) => prev.map((d, i) => (i === idx ? { ...d, pdfFileName: v } : d)))
                               }
-                              className="w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#ff5500]"
                             />
                           </div>
                         ) : hasAccess(item) ? (
@@ -410,7 +409,7 @@ export default function AdminOrdersPage() {
                               </a>
                             )}
                             {item.pdfFileName && (
-                              <div className="text-gray-300">PDF: {item.pdfFileName}</div>
+                              <div className="text-gray-300">PDF: {pdfDisplayName(item.pdfFileName)}</div>
                             )}
                           </div>
                         ) : (
@@ -463,6 +462,15 @@ export default function AdminOrdersPage() {
               </div>
             );
           })}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onChange={(p) => {
+              setPage(p);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            theme="dark"
+          />
         </div>
       )}
     </div>
