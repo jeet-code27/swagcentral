@@ -10,6 +10,9 @@ import {
   CheckCircle,
   AlertTriangle,
   Loader2,
+  Plus,
+  Pencil,
+  Eye,
 } from "lucide-react";
 import { cdnImage } from "@/lib/image";
 
@@ -74,10 +77,11 @@ export default function AdminProductsPage() {
         </div>
 
         <Link
-          href="/admin/import"
-          className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-unbounded font-bold px-4 py-2.5 rounded-xl transition uppercase w-max"
+          href="/admin/products/new"
+          className="inline-flex items-center gap-2 bg-[#ff5500] hover:bg-[#e04b00] text-white text-xs font-unbounded font-bold px-4 py-2.5 rounded-xl transition uppercase w-max shadow-lg shadow-[#ff5500]/20"
         >
-          WordPress Bulk Import
+          <Plus size={15} />
+          Add Product
         </Link>
       </div>
 
@@ -130,7 +134,7 @@ export default function AdminProductsPage() {
                   <th className="p-4">Delivery Format</th>
                   <th className="p-4">Access Link</th>
                   <th className="p-4">Status</th>
-                  <th className="p-4 text-right">View</th>
+                  <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800/60 text-gray-300">
@@ -145,7 +149,9 @@ export default function AdminProductsPage() {
                       />
                     </td>
                     <td className="p-4 font-semibold text-white max-w-xs">
-                      <div className="truncate">{prod.title}</div>
+                      <Link href={`/admin/products/${prod._id}`} className="block truncate hover:text-[#ff5500]">
+                        {prod.title}
+                      </Link>
                       <span className="text-[10px] text-gray-500">/{prod.slug}</span>
                     </td>
                     <td className="p-4">
@@ -206,14 +212,30 @@ export default function AdminProductsPage() {
                       )}
                     </td>
                     <td className="p-4 text-right">
-                      <Link
-                        href={`/product/${prod.slug}`}
-                        target="_blank"
-                        className="inline-flex p-1.5 text-gray-400 hover:text-white transition"
-                        title="View on site"
-                      >
-                        <ExternalLink size={14} />
-                      </Link>
+                      <div className="flex items-center justify-end gap-1">
+                        <Link
+                          href={`/admin/products/${prod._id}`}
+                          className="inline-flex p-1.5 text-gray-400 hover:text-white transition"
+                          title="View details"
+                        >
+                          <Eye size={15} />
+                        </Link>
+                        <Link
+                          href={`/admin/products/${prod._id}/edit`}
+                          className="inline-flex p-1.5 text-gray-400 hover:text-[#ff5500] transition"
+                          title="Edit product"
+                        >
+                          <Pencil size={15} />
+                        </Link>
+                        <Link
+                          href={`/product/${prod.slug}`}
+                          target="_blank"
+                          className="inline-flex p-1.5 text-gray-400 hover:text-white transition"
+                          title="View in store"
+                        >
+                          <ExternalLink size={15} />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

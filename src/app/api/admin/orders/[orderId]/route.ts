@@ -9,6 +9,27 @@ interface ItemUpdate {
   pdfFileName?: string;
 }
 
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ orderId: string }> }
+) {
+  const auth = await requireAdmin();
+  if (auth instanceof Response) return auth;
+
+  const { orderId } = await params;
+
+  const conn = await connectDB();
+  if (!conn) {
+    return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+  }
+
+  const order = await Order.findOne({ orderId }).lean();
+  if (!order) {
+    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+  return NextResponse.json({ success: true, order });
+}
+
 /**
  * Update an order's item access links (and optionally save them back to the product),
  * or change its status (e.g. cancel).

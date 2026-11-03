@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import Link from "next/link";
 import { cdnImage } from "@/lib/image";
 
@@ -35,15 +35,16 @@ export default function AdminCategoriesPage() {
             CATEGORIES
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Categories shown on the SwagCentral homepage, with live product counts.
+            Categories shown on the SwagCentral homepage. Click a category to view or edit it.
           </p>
         </div>
 
         <Link
-          href="/admin/import"
-          className="bg-[#ff5500] hover:bg-[#e04b00] text-white text-xs font-unbounded font-bold px-4 py-2.5 rounded-xl transition uppercase w-max"
+          href="/admin/categories/new"
+          className="inline-flex items-center gap-2 bg-[#ff5500] hover:bg-[#e04b00] text-white text-xs font-unbounded font-bold px-4 py-2.5 rounded-xl transition uppercase w-max"
         >
-          Import from WordPress
+          <Plus size={15} />
+          Add Category
         </Link>
       </div>
 
@@ -58,15 +59,14 @@ export default function AdminCategoriesPage() {
       )}
 
       {categories && categories.length === 0 && (
-        <p className="text-xs text-gray-400">No categories yet. Import products to create them.</p>
+        <p className="text-xs text-gray-400">No categories yet. Click Add Category to create one.</p>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {(categories || []).map((cat) => (
           <Link
             key={cat._id}
-            href={`/shop?category=${cat.slug}`}
-            target="_blank"
+            href={`/admin/categories/${cat._id}`}
             className="bg-[#131b2e] border border-gray-800 rounded-2xl p-5 flex items-center gap-4 hover:border-gray-700 transition"
           >
             <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 border-2 border-[#ff5500]">

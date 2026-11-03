@@ -274,7 +274,9 @@ export default function AdminOrdersPage() {
                 <div className="p-4 md:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-gray-800">
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                     <div>
-                      <div className="font-mono font-bold text-[#ff5500] text-sm">{order.orderId}</div>
+                      <Link href={`/admin/orders/${order.orderId}`} className="font-mono font-bold text-[#ff5500] text-sm hover:underline">
+                        {order.orderId}
+                      </Link>
                       <span className="text-[10px] text-gray-500">{formatDate(order.createdAt)}</span>
                     </div>
                     <div>
@@ -334,6 +336,12 @@ export default function AdminOrdersPage() {
                       </button>
                     )}
 
+                    <Link
+                      href={`/admin/orders/${order.orderId}`}
+                      className="inline-flex items-center gap-1 text-white hover:text-[#ff5500] text-[11px] font-bold px-2"
+                    >
+                      View Details
+                    </Link>
                     <Link
                       href={`/download/${order.downloadToken}`}
                       target="_blank"

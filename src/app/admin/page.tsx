@@ -6,9 +6,9 @@ import {
   IndianRupee,
   Package,
   ShoppingBag,
-  UploadCloud,
   ExternalLink,
-  Flame,
+  Plus,
+  Layers,
   Clock,
   AlertTriangle,
   Loader2,
@@ -106,7 +106,7 @@ export default function AdminDashboardPage() {
             ADMIN DASHBOARD
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Manage SwagCentral digital catalog, order deliveries, and WordPress imports.
+            Manage your SwagCentral catalog, categories, and order deliveries.
           </p>
         </div>
 
@@ -197,7 +197,9 @@ export default function AdminDashboardPage() {
                       return (
                         <tr key={ord.orderId} className="hover:bg-gray-800/30 transition">
                           <td className="p-4">
-                            <div className="font-mono font-bold text-[#ff5500]">{ord.orderId}</div>
+                            <Link href={`/admin/orders/${ord.orderId}`} className="font-mono font-bold text-[#ff5500] hover:underline">
+                              {ord.orderId}
+                            </Link>
                             <span className="text-[10px] text-gray-500">
                               {new Date(ord.createdAt).toLocaleString("en-IN", {
                                 day: "2-digit",
@@ -243,26 +245,24 @@ export default function AdminDashboardPage() {
         </>
       ) : null}
 
-      {/* WordPress & Cloudinary Migration Quick Banner */}
-      <div className="bg-gradient-to-r from-orange-950/40 via-amber-950/30 to-gray-900 border border-orange-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Flame size={18} className="text-[#ff5500]" />
-            <h3 className="font-unbounded font-bold text-sm text-white uppercase">
-              WordPress Bulk Importer
-            </h3>
-          </div>
-          <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">
-            Import products from a WordPress XML or CSV export. Images are re-hosted to Cloudinary and products are saved to the store.
-          </p>
-        </div>
-        <Link
-          href="/admin/import"
-          className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-gray-950 font-unbounded font-bold text-xs px-5 py-2.5 rounded-xl transition uppercase flex-shrink-0"
-        >
-          <UploadCloud size={14} />
-          Open Importer
-        </Link>
+      {/* Quick actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { href: "/admin/products/new", label: "Add New Product", icon: Plus },
+          { href: "/admin/products", label: "Edit Products", icon: Package },
+          { href: "/admin/categories", label: "Edit Categories", icon: Layers },
+        ].map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className="bg-[#131b2e] border border-gray-800 hover:border-[#ff5500]/50 rounded-2xl p-5 flex items-center gap-3 text-sm font-unbounded font-bold text-white uppercase transition"
+          >
+            <span className="p-2 rounded-xl bg-[#ff5500]/10 text-[#ff5500] border border-[#ff5500]/20">
+              <Icon size={18} />
+            </span>
+            {label}
+          </Link>
+        ))}
       </div>
     </div>
   );
