@@ -32,6 +32,8 @@ export interface IProduct extends Document {
   isOnSale?: boolean;
   isTrending?: boolean;
   salesCount: number;
+  /** Display position set in the admin panel (lower shows first; 0 = not ordered yet) */
+  sortOrder: number;
   status: "active" | "draft";
   createdAt: Date;
   updatedAt: Date;
@@ -72,6 +74,7 @@ const ProductSchema = new Schema<IProduct>(
     isOnSale: { type: Boolean, default: false },
     isTrending: { type: Boolean, default: false },
     salesCount: { type: Number, default: 0 },
+    sortOrder: { type: Number, default: 0, index: true },
     status: { type: String, enum: ["active", "draft"], default: "active" },
   },
   { timestamps: true }

@@ -4,8 +4,11 @@ import { Product } from "@/models/Product";
 import { Category } from "@/models/Category";
 
 /** Fields needed to render product cards (excludes the heavy HTML description). */
+/** Store order: the admin's display order first, then newest. */
+export const PRODUCT_ORDER = { sortOrder: 1, createdAt: -1 } as const;
+
 const CARD_FIELDS =
-  "title slug category categoryName shortDescription price originalPrice discountPercentage badge rating reviewCount thumbnail deliveryType features isFeatured isNewArrival isBestSeller isOnSale isTrending salesCount focusKeyword createdAt";
+  "sortOrder title slug category categoryName shortDescription price originalPrice discountPercentage badge rating reviewCount thumbnail deliveryType features isFeatured isNewArrival isBestSeller isOnSale isTrending salesCount focusKeyword createdAt";
 
 export const CATALOG_TAG = "catalog";
 
@@ -27,7 +30,7 @@ export async function getActiveProducts() {
   await requireDB();
   const docs = await Product.find({ status: "active" })
     .select(CARD_FIELDS)
-    .sort({ createdAt: -1 })
+    .sort(PRODUCT_ORDER)
     .lean();
   return toPlain(docs);
 }
@@ -69,6 +72,7 @@ export async function getRelatedProducts(category: string, excludeSlug: string) 
   await requireDB();
   const docs = await Product.find({ status: "active", category, slug: { $ne: excludeSlug } })
     .select(CARD_FIELDS)
+    .sort(PRODUCT_ORDER)
     .limit(4)
     .lean();
   return toPlain(docs);
@@ -94,7 +98,7 @@ export async function getSitemapData() {
   const [products, categories] = await Promise.all([
     Product.find({ status: "active" })
       .select("slug title price category categoryName shortDescription updatedAt")
-      .sort({ createdAt: -1 })
+      .sort(PRODUCT_ORDER)
       .lean(),
     Category.find({}).select("slug name description updatedAt").sort({ orderIndex: 1 }).lean(),
   ]);
