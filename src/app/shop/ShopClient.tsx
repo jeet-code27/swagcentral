@@ -127,10 +127,10 @@ export default function ShopClient({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-5 rounded-2xl border border-gray-200/90 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-gray-200/90 shadow-sm space-y-3 md:space-y-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
           {/* Search */}
-          <div className="relative w-full sm:w-80">
+          <div className="relative w-full md:w-80">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -149,8 +149,41 @@ export default function ShopClient({
             )}
           </div>
 
-          {/* Sort Selector */}
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          {/* Mobile: category + sort as two dropdowns (the category slider is desktop-only) */}
+          <div className="grid grid-cols-2 gap-2 w-full md:hidden">
+            <label className="block">
+              <span className="sr-only">Category</span>
+              <select
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-800 focus:outline-none focus:border-[#ff5500]"
+              >
+                <option value="all">All Products ({initialProducts.length})</option>
+                {categories.map((cat) => (
+                  <option key={cat.slug} value={cat.slug}>
+                    {cat.name}
+                    {typeof cat.count === "number" ? ` (${cat.count})` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="sr-only">Sort by</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-gray-800 focus:outline-none focus:border-[#ff5500]"
+              >
+                <option value="featured">Featured</option>
+                <option value="bestseller">Best Selling</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </label>
+          </div>
+
+          {/* Sort Selector (desktop) */}
+          <div className="hidden md:flex items-center gap-3 w-auto justify-end">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 whitespace-nowrap">
               <SlidersHorizontal size={14} />
               <span>Sort By:</span>
@@ -168,8 +201,8 @@ export default function ShopClient({
           </div>
         </div>
 
-        {/* Category Filter Pills with SwipeableContainer */}
-        <div className="border-t border-gray-100 pt-3">
+        {/* Category Filter Pills with SwipeableContainer (desktop) */}
+        <div className="hidden md:block border-t border-gray-100 pt-3">
           <SwipeableContainer showArrows={true} showProgressBar={true} className="gap-2 py-1">
             <button
               onClick={() => handleCategoryChange("all")}

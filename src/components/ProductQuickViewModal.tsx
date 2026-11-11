@@ -6,6 +6,7 @@ import { X, Check, ShieldCheck, Zap, FileText, ExternalLink, Star } from "lucide
 import { ProductItem } from "@/data/mockData";
 import { useCart } from "@/context/CartContext";
 import { cdnImage } from "@/lib/image";
+import { formatPrice } from "@/lib/price";
 
 function toPlainText(html: string) {
   return html
@@ -98,11 +99,11 @@ export default function ProductQuickViewModal({
               {/* Price */}
               <div className="flex items-baseline gap-3 pt-2">
                 <span className="font-unbounded font-black text-2xl text-[#ff5500]">
-                  ₹{product.price.toFixed(2)}
+                  {formatPrice(product.price)}
                 </span>
                 {product.originalPrice > product.price && (
                   <span className="text-sm text-gray-400 line-through">
-                    ₹{product.originalPrice.toFixed(2)}
+                    {formatPrice(product.originalPrice)}
                   </span>
                 )}
                 {product.discountPercentage && (

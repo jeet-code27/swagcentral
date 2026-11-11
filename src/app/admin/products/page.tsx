@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cdnImage } from "@/lib/image";
 import Pagination, { usePagination } from "@/components/Pagination";
+import { formatPrice } from "@/lib/price";
 
 interface AdminProduct {
   _id: string;
@@ -168,11 +169,11 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="p-4">
                       <div className="font-unbounded font-black text-sm text-[#ff5500]">
-                        ₹{prod.price.toFixed(2)}
+                        {formatPrice(prod.price)}
                       </div>
                       {prod.originalPrice > prod.price && (
                         <span className="text-[10px] text-gray-500 line-through">
-                          ₹{prod.originalPrice.toFixed(2)}
+                          {formatPrice(prod.originalPrice)}
                         </span>
                       )}
                     </td>

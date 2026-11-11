@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Star, ShoppingBag, Check, ExternalLink, FileText, Zap } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { cdnImage } from "@/lib/image";
+import { formatPrice } from "@/lib/price";
 
 interface ProductCardProps {
   product: any;
@@ -116,11 +117,11 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
           <div className="flex flex-col">
             {product.originalPrice > product.price && (
               <span className="text-[11px] text-gray-400 line-through">
-                ₹{product.originalPrice.toFixed(2)}
+                {formatPrice(product.originalPrice)}
               </span>
             )}
             <span className="font-unbounded font-black text-base sm:text-lg text-[#ff5500] tracking-tight">
-              ₹{product.price.toFixed(2)}
+              {formatPrice(product.price)}
             </span>
           </div>
 
