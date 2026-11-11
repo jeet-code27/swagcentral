@@ -23,7 +23,14 @@ export default function ShopClient({
   const [selectedCategory, setSelectedCategory] = useState<string>(
     categoryParam || "all"
   );
-  const [searchQuery, setSearchQuery] = useState("");
+  // Header search sends people here with ?q=; keep the box in sync when it changes
+  const qParam = searchParams.get("q") || "";
+  const [searchQuery, setSearchQuery] = useState(qParam);
+  const [lastQParam, setLastQParam] = useState(qParam);
+  if (qParam !== lastQParam) {
+    setLastQParam(qParam);
+    setSearchQuery(qParam);
+  }
   const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "bestseller">("featured");
 
   // Keep state in sync with URL query
@@ -109,12 +116,12 @@ export default function ShopClient({
             <span>59+ Verified Digital Bundles</span>
           </div>
 
-          <h1 className="font-unbounded font-black text-3xl sm:text-4xl md:text-5xl tracking-tight text-white uppercase leading-tight">
+          <h2 className="font-unbounded font-black text-3xl sm:text-4xl md:text-5xl tracking-tight text-white uppercase leading-tight">
             DIGITAL STORE
-          </h1>
+          </h2>
 
           <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
-            Instant digital access to prompts, Canva kits, study notes, recipes, and ready-to-sell PLR vaults.
+            Prompts, Canva kits, study notes, recipes and ready-to-sell PLR vaults, delivered to your email.
           </p>
         </div>
       </div>

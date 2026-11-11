@@ -21,7 +21,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-xs text-gray-600 leading-relaxed max-w-sm">
-              India&apos;s premier digital products marketplace. Instant access to curated AI prompt libraries, Canva design vaults, commercial PLR bundles, ebooks, and high-converting video reels.
+              Digital products for creators, students and small businesses: AI prompt libraries, Canva templates, PLR bundles, eBooks and reels packs, delivered by email.
             </p>
 
             <div className="space-y-2 pt-2 text-xs">
@@ -112,14 +112,9 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-[#ff5500] transition">
-                  BLOG & GUIDES
+                <Link href="/shop" className="hover:text-[#ff5500] transition">
+                  ALL PRODUCTS
                 </Link>
-              </li>
-              <li>
-                <span className="text-[#ff5500] font-semibold">
-                  INSTANT DIGITAL DELIVERY
-                </span>
               </li>
               <li>
                 <Link href="/help" className="hover:text-[#ff5500] transition">
@@ -141,13 +136,13 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <Link href="#products-section" className="hover:text-[#ff5500] transition">
+                <Link href="/checkout" className="hover:text-[#ff5500] transition">
                   MY CART
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:text-[#ff5500] transition">
-                  ACCESS MY DOWNLOADS
+                <Link href="/account" className="hover:text-[#ff5500] transition">
+                  MY ORDERS & DOWNLOADS
                 </Link>
               </li>
               <li>
@@ -158,6 +153,11 @@ export default function Footer() {
               <li>
                 <Link href="/terms" className="hover:text-[#ff5500] transition">
                   TERMS OF SERVICE
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund-policy" className="hover:text-[#ff5500] transition">
+                  REFUND POLICY
                 </Link>
               </li>
             </ul>
@@ -177,20 +177,21 @@ export default function Footer() {
               <span>•</span>
               <span className="text-orange-600">RuPay</span>
               <span>•</span>
-              <span className="text-blue-800">PayPal</span>
+              <span className="text-blue-800">Net Banking</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-gray-500">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-gray-500">
             <Link href="/terms" className="hover:underline">Terms of Use</Link>
             <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+            <Link href="/refund-policy" className="hover:underline">Refunds</Link>
             <Link href="/accessibility" className="hover:underline">Accessibility</Link>
           </div>
         </div>
 
         {/* Copyright */}
         <div className="text-center text-xs text-gray-400 pt-2 border-t border-gray-100">
-          Copyright © 2026 SwagCentral. All Rights Reserved. Built with Next.js, MongoDB & Cloudinary.
+          Copyright © 2026 SwagCentral. All Rights Reserved. Payments secured by PayU.
         </div>
       </div>
     </footer>

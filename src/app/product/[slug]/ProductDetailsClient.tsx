@@ -108,7 +108,7 @@ export default function ProductDetailsClient({
           <div className="grid grid-cols-2 gap-3 pt-2">
             <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-2 text-xs text-gray-700">
               <Zap size={16} className="text-[#ff5500]" />
-              <span className="font-semibold">Instant Access</span>
+              <span className="font-semibold">Delivered by Email</span>
             </div>
             <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-2 text-xs text-gray-700">
               <ShieldCheck size={16} className="text-emerald-600" />
@@ -138,17 +138,23 @@ export default function ProductDetailsClient({
               {product.title}
             </h1>
 
-            {/* Ratings */}
-            <div className="flex items-center gap-2 pt-1">
-              <div className="flex text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={15} className="fill-amber-400 text-amber-400" />
-                ))}
+            {/* Ratings (only when the product actually has ratings) */}
+            {product.reviewCount > 0 && (
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex text-amber-400">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={15}
+                      className={i < Math.round(product.rating || 0) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-gray-500 font-semibold">
+                  {Number(product.rating || 0).toFixed(1)} ({product.reviewCount} ratings)
+                </span>
               </div>
-              <span className="text-xs text-gray-500 font-semibold">
-                5.0 ({product.reviewCount || 48} verified customer ratings)
-              </span>
-            </div>
+            )}
           </div>
 
           {/* Pricing Box */}
@@ -169,7 +175,7 @@ export default function ProductDetailsClient({
               )}
             </div>
             <p className="text-xs text-amber-900 font-medium">
-              Tax included. Instant download link provided right after payment.
+              Tax included. Download links are emailed to you within 12 hours of payment.
             </p>
           </div>
 
@@ -187,7 +193,7 @@ export default function ProductDetailsClient({
                 onClick={handleBuyNow}
                 className="flex-1 bg-[#ff5500] hover:bg-[#e04b00] text-white font-unbounded font-bold py-4 px-8 rounded-xl shadow-xl transition transform active:scale-98 flex items-center justify-center gap-2 text-sm uppercase tracking-wider"
               >
-                <span>Instant Buy Now</span>
+                <span>Buy Now</span>
                 <Zap size={16} />
               </button>
 

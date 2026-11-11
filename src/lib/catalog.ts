@@ -83,3 +83,20 @@ export async function getAllProductSlugs() {
   const docs = await Product.find({ status: "active" }).select("slug").lean();
   return docs.map((d) => d.slug);
 }
+
+/** Product and category URLs for sitemap.xml and llms.txt. */
+export async function getSitemapData() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_TAG);
+
+  await requireDB();
+  const [products, categories] = await Promise.all([
+    Product.find({ status: "active" })
+      .select("slug title price category categoryName shortDescription updatedAt")
+      .sort({ createdAt: -1 })
+      .lean(),
+    Category.find({}).select("slug name description updatedAt").sort({ orderIndex: 1 }).lean(),
+  ]);
+  return toPlain({ products, categories });
+}

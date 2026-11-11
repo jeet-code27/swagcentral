@@ -1,6 +1,12 @@
 import React, { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import type { Metadata } from "next";
 import AdminShell from "@/components/admin/AdminShell";
+
+export const metadata: Metadata = {
+  title: "Admin | SwagCentral",
+  robots: { index: false, follow: false },
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   // The shell reads the current URL (active sidebar link, auth redirect), so it must sit

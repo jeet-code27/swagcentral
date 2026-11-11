@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import { Order } from "@/models/Order";
-import { Product } from "@/models/Product";
+import { resolveCartItems } from "@/lib/cart";
+import { applyCoupon } from "@/lib/coupons";
 import { sendOrderConfirmationEmail } from "@/lib/mailer";
 import { getPayuConfig } from "@/lib/payu";
 import { startOrderPayment } from "@/lib/orderPayment";
@@ -36,23 +36,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Resolve cart items against the database so prices and links can't be tampered with
-    const ids = items.map((i) => i.id).filter((id): id is string => !!id && mongoose.isValidObjectId(id));
-    const slugs = items.map((i) => i.slug || i.id).filter((s): s is string => !!s);
-    const products = await Product.find({
-      status: "active",
-      $or: [{ _id: { $in: ids } }, { slug: { $in: slugs } }],
-    }).lean();
-
-    const orderItems = products.map((p) => ({
-      productId: String(p._id),
-      title: p.title,
-      thumbnail: p.thumbnail,
-      price: p.price,
-      deliveryType: p.deliveryType || "link",
-      accessUrl: p.accessUrl || "",
-      pdfFileName: p.pdfFileName || "",
-    }));
+    const orderItems = await resolveCartItems(items);
 
     if (orderItems.length === 0) {
       return NextResponse.json(
@@ -61,7 +45,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const totalAmount = orderItems.reduce((sum, i) => sum + i.price, 0);
+    const subtotal = orderItems.reduce((sum, i) => sum + i.price, 0);
+
+    // Optional coupon, re-checked on the server
+    let couponCode = "";
+    let discount = 0;
+    if (body.couponCode) {
+      const coupon = await applyCoupon(String(body.couponCode), subtotal);
+      if ("error" in coupon) {
+        return NextResponse.json({ error: coupon.error, couponError: true }, { status: 400 });
+      }
+      couponCode = coupon.code;
+      discount = coupon.discount;
+    }
+    const totalAmount = subtotal - discount;
     const orderId = `SWAG-${Date.now().toString(36).toUpperCase()}${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
     const downloadToken = crypto.randomBytes(16).toString("hex");
 
@@ -74,6 +71,9 @@ export async function POST(req: NextRequest) {
       customerEmail,
       customerPhone,
       items: orderItems,
+      subtotal,
+      couponCode,
+      discount,
       totalAmount,
       currency: "INR",
       paymentStatus: "pending",

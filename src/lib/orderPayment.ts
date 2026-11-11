@@ -1,6 +1,7 @@
 import { Order, IOrder } from "@/models/Order";
 import { buildPayuPayment, verifyPayuTransaction } from "@/lib/payu";
 import { sendOrderConfirmationEmail } from "@/lib/mailer";
+import { recordCouponUse } from "@/lib/coupons";
 
 /**
  * Starts a new PayU payment attempt for an unpaid order and returns the form to POST to PayU.
@@ -69,6 +70,7 @@ export async function applyPayuTransaction(
     if (!updated) {
       return { outcome: "paid", order: await Order.findById(order._id) };
     }
+    await recordCouponUse(updated.couponCode);
 
     const mail = await sendOrderConfirmationEmail({
       orderId: updated.orderId,

@@ -9,17 +9,10 @@ import { Loader2 } from "lucide-react";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "Shop All Digital Products | Bundles, Prompts, Reels & Courses | SwagCentral",
+  title: "Shop Digital Products, AI Prompts & Templates | SwagCentral",
   description:
-    "Browse India's top collection of digital assets, AI prompt libraries, Canva templates, PLR bundles, ebooks, and marketing tools. Instant download access.",
-  keywords: [
-    "digital products store",
-    "ai prompts bundle",
-    "canva templates",
-    "reels bundle",
-    "plr reseller vault",
-    "study material notes",
-  ],
+    "Browse all SwagCentral digital products: AI prompts, Canva templates, reels packs, eBooks, study notes and PLR bundles. Filter by category and search.",
+  alternates: { canonical: "/shop" },
 };
 
 export default async function ShopPage() {
@@ -31,6 +24,8 @@ export default async function ShopPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#fdfbf7]">
       <Header />
+      {/* Page heading in the server HTML (the shop UI below loads with the search box) */}
+      <h1 className="sr-only">Shop Digital Products: AI Prompts, Canva Templates, Reels Packs and PLR Bundles</h1>
       <Suspense
         fallback={
           <div className="flex-1 flex items-center justify-center py-24 text-gray-400">

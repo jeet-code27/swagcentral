@@ -78,16 +78,22 @@ export default function ProductQuickViewModal({
                 {product.title}
               </h3>
 
-              <div className="flex items-center gap-2">
-                <div className="flex text-amber-400">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
-                  ))}
+              {product.reviewCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={14}
+                        className={i < Math.round(product.rating || 0) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs text-gray-500 font-semibold">
+                    {Number(product.rating || 0).toFixed(1)} ({product.reviewCount} ratings)
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500 font-semibold">
-                  5.0 ({product.reviewCount} verified downloads)
-                </span>
-              </div>
+              )}
 
               {/* Price */}
               <div className="flex items-baseline gap-3 pt-2">
@@ -110,7 +116,7 @@ export default function ProductQuickViewModal({
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-900 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold">
                   <Zap size={14} className="text-[#ff5500]" />
-                  <span>Instant Delivery via Email & On-Screen Link</span>
+                  <span>Download links emailed within 12 hours of payment</span>
                 </div>
                 <p className="text-[11px] text-amber-800">
                   {product.deliveryType === "pdf"
@@ -127,7 +133,7 @@ export default function ProductQuickViewModal({
                   onClick={handleInstantBuy}
                   className="w-full bg-[#ff5500] hover:bg-[#e04b00] text-white font-unbounded font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition active:scale-98 text-sm uppercase tracking-wider"
                 >
-                  Buy Now & Get Instant Access
+                  Buy Now
                 </button>
               </div>
             </div>

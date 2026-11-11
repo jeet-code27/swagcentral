@@ -6,6 +6,10 @@ import { getAllProductSlugs, getProductBySlug, getRelatedProducts } from "@/lib/
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductDetailsClient from "@/app/product/[slug]/ProductDetailsClient";
+import JsonLd from "@/components/JsonLd";
+import { cdnImage } from "@/lib/image";
+import { plainText, seoDescription, seoTitle } from "@/lib/seo";
+import { SITE, absoluteUrl } from "@/lib/site";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -27,36 +31,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(slug);
 
   if (!product) {
-    return {
-      title: "Product Not Found | SwagCentral",
-    };
+    return { title: "Product Not Found | SwagCentral", robots: { index: false } };
   }
 
-  const title = product.metaTitle || `${product.title} | SwagCentral`;
-  const rawDesc =
+  // Titles <= 60 and descriptions <= 155 characters so search results don't cut them off
+  const title = seoTitle(product.metaTitle || product.title);
+  const description = seoDescription(
     product.metaDescription ||
-    product.shortDescription ||
-    `Get instant digital access to ${product.title} on SwagCentral.`;
-  const description = rawDesc.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+      product.shortDescription ||
+      `${plainText(product.title)}. Digital product delivered by email on SwagCentral.`
+  );
+  const image = product.thumbnail ? cdnImage(product.thumbnail, 1200) : undefined;
+  const path = `/product/${product.slug}`;
 
   return {
     title,
     description,
-    keywords: product.focusKeyword
-      ? [product.focusKeyword, ...(product.tags || [])]
-      : product.tags,
+    alternates: { canonical: path },
     openGraph: {
       title,
       description,
-      images: product.thumbnail ? [product.thumbnail] : [],
-      url: `https://swagcentral.in/product/${product.slug}`,
+      url: path,
       type: "website",
+      images: image ? [{ url: image, alt: plainText(product.title) }] : [],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: product.thumbnail ? [product.thumbnail] : [],
+      images: image ? [image] : [],
     },
   };
 }
@@ -71,8 +74,51 @@ export default async function SingleProductPage({ params }: Props) {
 
   const relatedProducts = await getRelatedProducts(product.category, product.slug);
 
+  // Structured data so Google can show price and rating in search results
+  const productUrl = absoluteUrl(`/product/${product.slug}`);
+  const productSchema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: plainText(product.title),
+      description: seoDescription(product.shortDescription || product.metaDescription || product.description || product.title),
+      image: [product.thumbnail, ...(product.images || [])].filter(Boolean).slice(0, 5).map((u: string) => cdnImage(u, 1200)),
+      sku: product.slug,
+      brand: { "@type": "Brand", name: SITE.name },
+      category: product.categoryName || product.category,
+      offers: {
+        "@type": "Offer",
+        url: productUrl,
+        priceCurrency: "INR",
+        price: product.price,
+        availability: "https://schema.org/InStock",
+        itemCondition: "https://schema.org/NewCondition",
+        seller: { "@type": "Organization", name: SITE.name },
+      },
+      ...(product.reviewCount > 0 && product.rating > 0
+        ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviewCount } }
+        : {}),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+        { "@type": "ListItem", position: 2, name: "Shop", item: absoluteUrl("/shop") },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: product.categoryName || product.category,
+          item: absoluteUrl(`/shop?category=${encodeURIComponent(product.category)}`),
+        },
+        { "@type": "ListItem", position: 4, name: plainText(product.title), item: productUrl },
+      ],
+    },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col bg-[#fdfbf7]">
+      <JsonLd data={productSchema} />
       <Header />
       <ProductDetailsClient
         product={product}

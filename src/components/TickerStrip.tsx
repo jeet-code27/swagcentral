@@ -15,7 +15,7 @@ export default function TickerStrip({ variant = "yellow" }: TickerStripProps) {
         { icon: Sparkles, text: "100+ DIGITAL PRODUCTS" },
         { icon: Tag, text: "UP TO 75% OFF ALL BUNDLES" },
         { icon: Zap, text: "LIFETIME ACCESS ON SELECT BUNDLES" },
-        { icon: ShieldCheck, text: "INSTANT ACCESS & EMAIL DELIVERY" },
+        { icon: ShieldCheck, text: "DELIVERED BY EMAIL WITHIN 12 HOURS" },
       ]
     : [
         { icon: Sparkles, text: "NEW IN OUR STORE" },

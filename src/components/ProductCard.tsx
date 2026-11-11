@@ -68,7 +68,7 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
         <div className="absolute bottom-2.5 left-2.5 z-10">
           <span className="bg-black/75 backdrop-blur-md text-gray-200 text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 border border-white/10">
             <Zap size={11} className="text-yellow-400" />
-            <span>Instant Access</span>
+            <span>Email Delivery</span>
           </span>
         </div>
       </Link>
@@ -93,21 +93,23 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
           </Link>
         </div>
 
-        {/* Star Ratings */}
+        {/* Star Ratings (only when the product actually has ratings) */}
+        {product.reviewCount > 0 && (
         <div className="flex items-center gap-1">
           <div className="flex text-amber-400">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
                 size={12}
-                className={i < Math.floor(product.rating || 5) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                className={i < Math.round(product.rating || 0) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
               />
             ))}
           </div>
           <span className="text-[10px] text-gray-500 font-semibold ml-1">
-            ({product.reviewCount || 42})
+            ({product.reviewCount})
           </span>
         </div>
+        )}
 
         {/* Pricing & Add to cart button */}
         <div className="pt-2 border-t border-gray-100 flex items-center justify-between">

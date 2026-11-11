@@ -1,14 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
-import { Search, User, Heart, ShoppingBag, Phone, Menu, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, User, ShoppingBag, Phone, Menu, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 export default function Header() {
   const { totalItems } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  // Search runs on the Shop page, which reads ?q=
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    setMobileMenuOpen(false);
+    router.push(q ? `/shop?q=${encodeURIComponent(q)}` : "/shop");
+  };
 
   return (
     <header className="w-full bg-white border-b border-gray-100 sticky top-0 z-40">
@@ -30,12 +40,11 @@ export default function Header() {
 
           <div className="flex items-center gap-4 text-gray-300">
             <Link href="/about" className="hover:text-white transition">About</Link>
-            <Link href="/blog" className="hover:text-white transition">Blog</Link>
+            <Link href="/account" className="hover:text-white transition">My Orders</Link>
             <Link href="/help" className="hover:text-white transition">Help</Link>
             <Link href="/contact" className="hover:text-white transition">Contact</Link>
-            <span className="text-gray-600">|</span>
-            <span className="font-bold text-white">INR (₹)</span>
-            <span>English</span>
+            <span className="hidden md:inline text-gray-600">|</span>
+            <span className="hidden md:inline font-bold text-white">INR (₹)</span>
           </div>
         </div>
       </div>
@@ -53,32 +62,25 @@ export default function Header() {
 
         {/* Center Desktop Links */}
         <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold tracking-wide text-gray-800">
-          <Link href="/" className="hover:text-[#ff5500] transition text-[#ff5500]">
-            HOME
-          </Link>
-          <Link href="/shop" className="hover:text-[#ff5500] transition">
-            SHOP
-          </Link>
-          <Link href="#categories-section" className="hover:text-[#ff5500] transition">
-            CATEGORIES
-          </Link>
-          <Link href="#deals-section" className="hover:text-[#ff5500] transition">
-            DEALS
-          </Link>
+          {/* Reading the URL needs Suspense on dynamic pages; the fallback is the same links without highlight */}
+          <Suspense fallback={<NavLinks pathname="" />}>
+            <ActiveNavLinks />
+          </Suspense>
         </nav>
 
         {/* Right Search and Actions */}
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center relative">
+          <form onSubmit={submitSearch} role="search" className="hidden md:flex items-center relative">
             <input
-              type="text"
+              type="search"
+              aria-label="Search products"
               placeholder="Search digital products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 pr-4 py-1.5 text-xs bg-gray-100 rounded-full border border-gray-200 focus:outline-none focus:border-[#ff5500] focus:bg-white w-48 lg:w-60 transition"
             />
             <Search size={14} className="absolute left-3 text-gray-400" />
-          </div>
+          </form>
 
           <Link
             href="/account"
@@ -105,6 +107,7 @@ export default function Header() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             className="lg:hidden p-2 text-gray-700 hover:text-black"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -115,15 +118,17 @@ export default function Header() {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-3 animate-fadeIn">
-          <div className="mb-3">
+          <form onSubmit={submitSearch} role="search" className="mb-3 relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              type="text"
+              type="search"
+              aria-label="Search products"
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 text-sm bg-gray-100 rounded-lg border border-gray-200"
+              className="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-100 rounded-lg border border-gray-200 focus:outline-none focus:border-[#ff5500]"
             />
-          </div>
+          </form>
           <Link
             href="/"
             onClick={() => setMobileMenuOpen(false)}
@@ -132,14 +137,14 @@ export default function Header() {
             HOME
           </Link>
           <Link
-            href="#products-section"
+            href="/shop"
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-gray-800 font-bold border-b border-gray-50"
           >
             SHOP
           </Link>
           <Link
-            href="#categories-section"
+            href="/#categories-section"
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-gray-800 font-bold border-b border-gray-50"
           >
@@ -156,4 +161,31 @@ export default function Header() {
       )}
     </header>
   );
+}
+
+const NAV_LINKS = [
+  { href: "/", label: "HOME", isActive: (p: string) => p === "/" },
+  { href: "/shop", label: "SHOP", isActive: (p: string) => p.startsWith("/shop") },
+  { href: "/#categories-section", label: "CATEGORIES", isActive: () => false },
+  { href: "/#deals-section", label: "DEALS", isActive: () => false },
+];
+
+function NavLinks({ pathname }: { pathname: string }) {
+  return (
+    <>
+      {NAV_LINKS.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          className={`hover:text-[#ff5500] transition ${link.isActive(pathname) ? "text-[#ff5500]" : ""}`}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </>
+  );
+}
+
+function ActiveNavLinks() {
+  return <NavLinks pathname={usePathname()} />;
 }

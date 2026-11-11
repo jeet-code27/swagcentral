@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { Order } from "@/models/Order";
 import { Product } from "@/models/Product";
+import { recordCouponUse } from "@/lib/coupons";
 
 interface ItemUpdate {
   accessUrl?: string;
@@ -82,6 +83,7 @@ export async function PATCH(
     order.paymentMode = "Marked paid by admin";
     order.paymentError = "";
     order.paidAt = new Date();
+    await recordCouponUse(order.couponCode);
   }
 
   await order.save();

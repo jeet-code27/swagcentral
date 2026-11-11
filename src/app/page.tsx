@@ -6,18 +6,10 @@ import HomeClient from "./HomeClient";
 export const instant = false;
 
 export const metadata: Metadata = {
-  title: "SwagCentral | Best Digital Products, PLR Bundles & Templates",
+  title: "SwagCentral | Digital Products, PLR Bundles & Templates",
   description:
-    "Up to 40% - 75% off for all digital products, AI prompts, Canva templates, eBooks, reels bundles, and marketing tools. Instant digital download.",
-  keywords: [
-    "digital products",
-    "canva templates",
-    "ai prompts",
-    "reels packs",
-    "ebooks",
-    "plr bundles",
-    "swagcentral",
-  ],
+    "Shop AI prompt packs, Canva templates, reels bundles, eBooks, study material and PLR bundles at low prices. Secure UPI payment, delivered by email.",
+  alternates: { canonical: "/" },
 };
 
 export default async function Home() {

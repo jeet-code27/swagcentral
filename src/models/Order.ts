@@ -16,6 +16,10 @@ export interface IOrder extends Document {
   customerEmail: string;
   customerPhone?: string;
   items: IOrderItem[];
+  /** Sum of item prices before any coupon */
+  subtotal?: number;
+  couponCode?: string;
+  discount?: number;
   totalAmount: number;
   currency: string;
   paymentStatus: "pending" | "completed" | "failed";
@@ -58,6 +62,9 @@ const OrderSchema = new Schema<IOrder>(
     customerEmail: { type: String, required: true, index: true },
     customerPhone: { type: String, default: "" },
     items: { type: [OrderItemSchema], default: [] },
+    subtotal: { type: Number },
+    couponCode: { type: String, default: "" },
+    discount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     currency: { type: String, default: "INR" },
     paymentStatus: {

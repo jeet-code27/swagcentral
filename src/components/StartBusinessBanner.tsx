@@ -66,7 +66,7 @@ export default function StartBusinessBanner() {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle size={15} className="text-lime-400" />
-                    <span>Instant Google Drive access with 100k+ assets</span>
+                    <span>Google Drive access with 100k+ assets</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle size={15} className="text-lime-400" />

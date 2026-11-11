@@ -47,7 +47,40 @@ export default function CheckoutClient() {
       : ""
   );
 
+  // Coupon: checked on the server, and dropped automatically if the cart changes
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number; label: string; cartKey: string } | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const cartKey = cart.map((i) => i.id).join(",");
+  const activeCoupon = coupon && coupon.cartKey === cartKey ? coupon : null;
+  const couponDiscount = activeCoupon?.discount || 0;
+  const payable = totalAmount - couponDiscount;
+
   const savings = Math.max(totalOriginalAmount - totalAmount, 0);
+
+  const applyCouponCode = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setApplyingCoupon(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, items: cart.map((item) => ({ id: item.id, slug: item.slug })) }),
+      });
+      const data = await readJson(res);
+      if (!res.ok) throw new Error(data.error || "Could not apply coupon");
+      setCoupon({ code: data.code, discount: data.discount, label: data.label, cartKey });
+      setCouponInput("");
+    } catch (err) {
+      setCoupon(null);
+      setCouponError((err as Error).message);
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +109,14 @@ export default function CheckoutClient() {
           customerEmail,
           customerPhone,
           items: cart.map((item) => ({ id: item.id, slug: item.slug })),
+          couponCode: activeCoupon?.code || "",
         }),
       });
       const data = await readJson(res);
+      if (data.couponError) {
+        setCoupon(null);
+        setCouponError(data.error);
+      }
       if (!res.ok) throw new Error(data.error || "Failed to place order");
 
       // The cart is cleared on the order page, so going back from PayU keeps it intact
@@ -103,7 +141,7 @@ export default function CheckoutClient() {
           Taking you to secure payment...
         </h1>
         <p className="text-sm text-gray-500 max-w-sm">
-          Opening PayU for ₹{totalAmount.toLocaleString("en-IN")}. Please don&apos;t press back or refresh this page.
+          Opening PayU for ₹{payable.toLocaleString("en-IN")}. Please don&apos;t press back or refresh this page.
         </p>
         <p className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
           <Lock size={13} /> 100% secure payment by PayU
@@ -318,6 +356,52 @@ export default function CheckoutClient() {
               ))}
             </ul>
 
+            {/* Coupon */}
+            <div className="px-5 md:px-6 py-4 border-t border-gray-100">
+              {activeCoupon ? (
+                <div className="flex items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2.5">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-emerald-800 font-mono">{activeCoupon.code} applied</p>
+                    <p className="text-[11px] text-emerald-700 truncate">{activeCoupon.label}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCoupon(null)}
+                    className="text-xs font-semibold text-gray-500 hover:text-red-600 flex-shrink-0"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="flex gap-2">
+                    <input
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          applyCouponCode();
+                        }
+                      }}
+                      placeholder="Coupon code"
+                      aria-label="Coupon code"
+                      className="flex-1 min-w-0 px-3 py-2.5 text-sm rounded-xl border border-gray-200 uppercase font-mono focus:outline-none focus:border-[#ff5500]"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyCouponCode}
+                      disabled={applyingCoupon || !couponInput.trim()}
+                      className="px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-black disabled:bg-gray-300 text-white text-xs font-bold flex-shrink-0"
+                    >
+                      {applyingCoupon ? <Loader2 size={14} className="animate-spin" /> : "Apply"}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-[11px] text-red-600">{couponError}</p>}
+                </div>
+              )}
+            </div>
+
             <div className="px-5 md:px-6 py-4 border-t border-gray-100 space-y-2 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
@@ -329,6 +413,12 @@ export default function CheckoutClient() {
                   <span>-{formatINR(savings)}</span>
                 </div>
               )}
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-emerald-600 font-semibold">
+                  <span>Coupon ({activeCoupon?.code})</span>
+                  <span>-{formatINR(couponDiscount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-600">
                 <span>Delivery</span>
                 <span className="text-emerald-600 font-semibold">Free (Digital)</span>
@@ -336,7 +426,7 @@ export default function CheckoutClient() {
               <div className="flex justify-between items-center pt-3 mt-1 border-t border-dashed border-gray-200">
                 <span className="font-unbounded font-bold text-gray-950 uppercase text-sm">Total</span>
                 <span className="font-unbounded font-black text-2xl text-[#ff5500]">
-                  {formatINR(totalAmount)}
+                  {formatINR(payable)}
                 </span>
               </div>
             </div>
@@ -360,13 +450,13 @@ export default function CheckoutClient() {
                 ) : (
                   <>
                     <Lock size={15} />
-                    Pay {formatINR(totalAmount)}
+                    Pay {formatINR(payable)}
                   </>
                 )}
               </button>
-              {savings > 0 && (
+              {savings + couponDiscount > 0 && (
                 <p className="text-center text-xs text-emerald-700 font-semibold">
-                  You save {formatINR(savings)} on this order
+                  You save {formatINR(savings + couponDiscount)} on this order
                 </p>
               )}
             </div>

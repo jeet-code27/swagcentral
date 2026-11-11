@@ -12,6 +12,7 @@ import {
   LogOut,
   Loader2,
   ShieldCheck,
+  Ticket,
 } from "lucide-react";
 
 export default function AdminShell({
@@ -74,6 +75,7 @@ export default function AdminShell({
     { href: "/admin/products", label: "Products", icon: Package },
     { href: "/admin/categories", label: "Categories", icon: Layers },
     { href: "/admin/orders", label: "Orders & Delivery", icon: ShoppingBag },
+    { href: "/admin/coupons", label: "Coupons", icon: Ticket },
   ];
 
   return (

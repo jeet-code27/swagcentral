@@ -10,7 +10,6 @@ import ProductShowcaseTabs from "@/components/ProductShowcaseTabs";
 import StartBusinessBanner from "@/components/StartBusinessBanner";
 import TrendingProducts from "@/components/TrendingProducts";
 import SaveMoreDeals from "@/components/SaveMoreDeals";
-import ReviewsSection from "@/components/ReviewsSection";
 import SocialAndCoupon from "@/components/SocialAndCoupon";
 import Footer from "@/components/Footer";
 
@@ -27,6 +26,9 @@ export default function HomeClient({
     <div className="min-h-screen flex flex-col bg-[#fdfbf7]">
       {/* 1. Top Header */}
       <Header />
+
+      {/* Main page heading for search engines and screen readers (the hero shows the visual headline) */}
+      <h1 className="sr-only">SwagCentral: Digital Products, AI Prompts, Canva Templates and PLR Bundles in India</h1>
 
       {/* 2. Hero Banner with Slider */}
       <HeroBanner />
@@ -51,9 +53,6 @@ export default function HomeClient({
 
       {/* 9. Save More With Best Deals */}
       <SaveMoreDeals />
-
-      {/* 10. Customer Reviews */}
-      <ReviewsSection />
 
       {/* 11. Social & First Purchase Coupon */}
       <SocialAndCoupon />

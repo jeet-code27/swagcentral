@@ -54,6 +54,9 @@ interface OrderDetail {
   paymentStatus: "pending" | "completed" | "failed";
   paymentMethod: string;
   paymentId?: string;
+  subtotal?: number;
+  couponCode?: string;
+  discount?: number;
   paymentTxnId?: string;
   paymentMode?: string;
   paymentError?: string;
@@ -450,6 +453,13 @@ export default function OrderDetailPage() {
               {order.paymentError && order.paymentStatus !== "completed" && (
                 <DetailRow label="Last Error">
                   <span className="text-red-300">{order.paymentError}</span>
+                </DetailRow>
+              )}
+              {order.couponCode && (
+                <DetailRow label="Coupon">
+                  <span className="font-mono">{order.couponCode}</span>
+                  {order.discount ? <span className="text-emerald-400"> · -₹{order.discount}</span> : null}
+                  {order.subtotal ? <span className="text-gray-500"> (subtotal ₹{order.subtotal})</span> : null}
                 </DetailRow>
               )}
               <DetailRow label="Currency">{order.currency}</DetailRow>
