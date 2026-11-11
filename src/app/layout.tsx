@@ -3,6 +3,7 @@ import { Unbounded, Albert_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import JsonLd from "@/components/JsonLd";
+import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/GoogleTagManager";
 import { SITE } from "@/lib/site";
 
 const unbounded = Unbounded({
@@ -41,6 +42,7 @@ const siteSchema = [
     url: SITE.url,
     logo: `${SITE.url}/images/logo.webp`,
     email: SITE.email,
+    sameAs: Object.values(SITE.social).filter(Boolean),
     contactPoint: {
       "@type": "ContactPoint",
       telephone: SITE.whatsapp.replace(/\s/g, ""),
@@ -71,6 +73,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${unbounded.variable} ${albertSans.variable}`}>
       <body className="min-h-screen flex flex-col font-body bg-[#fdfbf7] text-[#111827] antialiased">
+        <GoogleTagManagerNoScript />
+        <GoogleTagManager />
         <JsonLd data={siteSchema} />
         <CartProvider>{children}</CartProvider>
       </body>

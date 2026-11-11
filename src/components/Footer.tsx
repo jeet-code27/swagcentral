@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Phone, Mail, MapPin, Headphones } from "lucide-react";
+import { SITE } from "@/lib/site";
 
 export default function Footer() {
   return (
@@ -53,6 +54,20 @@ export default function Footer() {
                 <Headphones size={14} />
                 <span>HELP DESK (WHATSAPP)</span>
               </a>
+            </div>
+
+            <div className="flex items-center gap-3 pt-1 text-xs font-semibold text-gray-700">
+              <span className="text-gray-500">Follow us:</span>
+              {SITE.social.instagram && (
+                <a href={SITE.social.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-[#ff5500]">
+                  Instagram
+                </a>
+              )}
+              {SITE.social.facebook && (
+                <a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-[#ff5500]">
+                  Facebook
+                </a>
+              )}
             </div>
           </div>
 
