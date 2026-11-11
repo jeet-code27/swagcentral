@@ -197,9 +197,9 @@ export async function sendOrderConfirmationEmail(order: MailOrder): Promise<Mail
 
     const html = renderEmail({
       title: "Order Received - SwagCentral",
-      badge: "✓ Order Received • Delivery Pending",
+      badge: "✓ Order Confirmed • Payment Received",
       badgeColors: { bg: "#fffbeb", border: "#f59e0b", text: "#b45309" },
-      intro: `Thank you for shopping with <strong>SwagCentral</strong>! We have received your order. Our team will verify it and send your digital products to this email shortly.`,
+      intro: `Thank you for shopping with <strong>SwagCentral</strong>! We have received your payment of <strong style="color: #ff5500;">₹${escapeHtml(order.totalAmount)}</strong> and your order is confirmed. <strong>You will receive your digital products on this email within 12 hours.</strong>`,
       order,
       statusLabel: "Processing",
       statusColor: "#b45309",
@@ -211,7 +211,7 @@ export async function sendOrderConfirmationEmail(order: MailOrder): Promise<Mail
                         Track Order Status
                       </a>
                       <p style="color: #94a3b8; font-size: 12px; margin: 8px 0 0 0;">
-                        You'll receive another email with your download links once the order is delivered.
+                        Your download links will be emailed to you within 12 hours. You can also track your order anytime using the button above.
                       </p>
                     </div>`,
     });
@@ -219,7 +219,7 @@ export async function sendOrderConfirmationEmail(order: MailOrder): Promise<Mail
     const info = await getTransporter().sendMail({
       from: process.env.SMTP_FROM || `"SwagCentral" <${process.env.SMTP_USER}>`,
       to: order.customerEmail,
-      subject: `Order Received: [Order #${order.orderId}] - SwagCentral`,
+      subject: `Order Confirmed: [Order #${order.orderId}] - Products within 12 hours`,
       html,
       attachments: logoAttachment(),
     });
@@ -286,6 +286,60 @@ export async function sendOrderDeliveryEmail(order: MailOrder): Promise<MailResu
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error("Error sending delivery email:", error);
+    return { success: false, error: (error as Error).message };
+  }
+}
+
+/**
+ * Sends the 6-digit code a customer uses to sign in and view their orders.
+ */
+export async function sendLoginCodeEmail(email: string, code: string): Promise<MailResult> {
+  try {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <body style="margin:0; padding:0; background-color:#f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding: 30px 10px;">
+          <tr>
+            <td align="center">
+              <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:16px; overflow:hidden; border: 1px solid #eaeaea;">
+                <tr>
+                  <td style="background-color: #0d1117; padding: 24px; text-align: center; border-bottom: 3px solid #ff5500;">
+                    <img src="cid:company-logo" alt="SwagCentral" width="150" style="display: inline-block; max-width: 150px; height: auto;" />
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 32px; text-align: center;">
+                    <h2 style="color: #0f172a; margin: 0 0 10px 0; font-size: 20px;">Your login code</h2>
+                    <p style="color: #475569; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0;">
+                      Use this code to see your SwagCentral orders. It expires in 10 minutes.
+                    </p>
+                    <div style="font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #ff5500; background: #fff7ed; border-radius: 12px; padding: 16px 0; font-family: monospace;">
+                      ${escapeHtml(code)}
+                    </div>
+                    <p style="color: #94a3b8; font-size: 12px; margin: 24px 0 0 0;">
+                      If you didn't ask for this code, you can ignore this email.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const info = await getTransporter().sendMail({
+      from: process.env.SMTP_FROM || `"SwagCentral" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: `${code} is your SwagCentral login code`,
+      html,
+      attachments: logoAttachment(),
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("Error sending login code email:", error);
     return { success: false, error: (error as Error).message };
   }
 }

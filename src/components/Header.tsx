@@ -81,8 +81,9 @@ export default function Header() {
           </div>
 
           <Link
-            href="/admin"
-            title="Admin Login"
+            href="/account"
+            title="My Orders"
+            aria-label="My Orders"
             className="p-2 text-gray-700 hover:text-[#ff5500] transition rounded-full hover:bg-gray-100"
           >
             <User size={20} />
@@ -140,9 +141,16 @@ export default function Header() {
           <Link
             href="#categories-section"
             onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-gray-800 font-bold"
+            className="block py-2 text-gray-800 font-bold border-b border-gray-50"
           >
             CATEGORIES
+          </Link>
+          <Link
+            href="/account"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-gray-800 font-bold"
+          >
+            MY ORDERS
           </Link>
         </div>
       )}

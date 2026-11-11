@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
         customerEmail: order.customerEmail,
         // Access links are only revealed once the admin has sent the order
         items: order.items.map((item) => ({
+          productId: item.productId,
           title: item.title,
           thumbnail: item.thumbnail,
           price: item.price,
@@ -39,6 +40,8 @@ export async function GET(req: NextRequest) {
         })),
         totalAmount: order.totalAmount,
         orderStatus,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
         createdAt: order.createdAt,
       },
     });

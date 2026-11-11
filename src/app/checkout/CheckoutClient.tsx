@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { cdnImage } from "@/lib/image";
+import { redirectToPayu } from "@/lib/payuClient";
+import { readJson } from "@/lib/http";
 
 const formatINR = (value: number) =>
   `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -27,7 +29,7 @@ const inputClass =
   "w-full pl-10 pr-3 py-3 text-sm rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-[#ff5500] focus:ring-2 focus:ring-[#ff5500]/15 transition";
 
 export default function CheckoutClient() {
-  const { cart, removeFromCart, clearCart, isLoaded, totalAmount, totalOriginalAmount, totalItems } =
+  const { cart, removeFromCart, isLoaded, totalAmount, totalOriginalAmount, totalItems } =
     useCart();
   const router = useRouter();
 
@@ -36,7 +38,14 @@ export default function CheckoutClient() {
   const [confirmEmail, setConfirmEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  // Shown while the browser loads PayU, instead of flashing an empty cart
+  const [redirecting, setRedirecting] = useState(false);
+  // Shown when PayU sends the customer back here after an error
+  const [errorMsg, setErrorMsg] = useState(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("payment") === "error"
+      ? "Something went wrong with the payment. If money was deducted, contact us on WhatsApp with your email address."
+      : ""
+  );
 
   const savings = Math.max(totalOriginalAmount - totalAmount, 0);
 
@@ -52,6 +61,10 @@ export default function CheckoutClient() {
       setErrorMsg("Email addresses do not match. Please check and try again.");
       return;
     }
+    if (customerPhone.replace(/\D/g, "").length < 10) {
+      setErrorMsg("Please enter a valid 10-digit mobile number.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -65,16 +78,39 @@ export default function CheckoutClient() {
           items: cart.map((item) => ({ id: item.id, slug: item.slug })),
         }),
       });
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) throw new Error(data.error || "Failed to place order");
 
-      clearCart();
+      // The cart is cleared on the order page, so going back from PayU keeps it intact
+      setRedirecting(true);
+      if (data.payment) {
+        // Go to PayU's secure payment page; PayU brings the customer back to their order page
+        redirectToPayu(data.payment);
+        return;
+      }
       router.push(`/download/${data.downloadToken}`);
     } catch (err) {
       setErrorMsg((err as Error).message);
       setIsSubmitting(false);
     }
   };
+
+  if (redirecting) {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center gap-4 py-24 px-4 text-center">
+        <Loader2 size={40} className="animate-spin text-[#ff5500]" />
+        <h1 className="font-unbounded font-black text-lg uppercase text-gray-950">
+          Taking you to secure payment...
+        </h1>
+        <p className="text-sm text-gray-500 max-w-sm">
+          Opening PayU for ₹{totalAmount.toLocaleString("en-IN")}. Please don&apos;t press back or refresh this page.
+        </p>
+        <p className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold">
+          <Lock size={13} /> 100% secure payment by PayU
+        </p>
+      </main>
+    );
+  }
 
   if (!isLoaded) {
     return (
@@ -180,10 +216,12 @@ export default function CheckoutClient() {
                 </Field>
               </div>
 
-              <Field label="WhatsApp Number" hint="Optional, for order support">
+              <Field label="Mobile Number" required hint="Needed for payment; we may also use it for order support on WhatsApp">
                 <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="tel"
+                  required
+                  inputMode="tel"
                   autoComplete="tel"
                   placeholder="+91 98765 43210"
                   value={customerPhone}
@@ -204,8 +242,8 @@ export default function CheckoutClient() {
             </h2>
             <ol className="space-y-3">
               {[
-                ["Place your order", "You'll get an order confirmation email right away."],
-                ["We confirm your order", "Our team reviews and confirms it, usually within a few hours."],
+                ["Pay securely with PayU", "UPI, cards, net banking or wallets. You'll get a payment confirmation email."],
+                ["We prepare your order", "Our team sends your products to your email within 12 hours."],
                 ["Get your products", "Download links are emailed to you and shown on your order page."],
               ].map(([title, text], i) => (
                 <li key={title} className="flex items-start gap-3">
@@ -317,12 +355,12 @@ export default function CheckoutClient() {
                 {isSubmitting ? (
                   <>
                     <Loader2 size={17} className="animate-spin" />
-                    Placing Order...
+                    Taking you to payment...
                   </>
                 ) : (
                   <>
                     <Lock size={15} />
-                    Place Order · {formatINR(totalAmount)}
+                    Pay {formatINR(totalAmount)}
                   </>
                 )}
               </button>

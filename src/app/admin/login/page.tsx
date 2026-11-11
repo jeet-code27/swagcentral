@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Lock, Mail, ShieldAlert, ArrowRight, Loader2, ArrowLeft } from "lucide-react";
+import { readJson } from "@/lib/http";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function AdminLoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data = await readJson(res);
 
       if (!res.ok) {
         throw new Error(data.error || "Authentication failed");

@@ -13,12 +13,14 @@ import {
   AlertTriangle,
   Loader2,
 } from "lucide-react";
+import { getOrderView, OrderView } from "@/lib/orderState";
 
 interface Stats {
   revenue: number;
   revenueThisWeek: number;
   pendingOrders: number;
   pendingValue: number;
+  awaitingPayment: number;
   deliveredOrders: number;
   productCount: number;
   productsWithoutLink: number;
@@ -32,14 +34,17 @@ interface RecentOrder {
   items: { title: string }[];
   totalAmount: number;
   orderStatus?: "pending" | "delivered" | "cancelled";
+  paymentStatus?: "pending" | "completed" | "failed";
+  paymentMethod?: string;
   downloadToken: string;
   createdAt: string;
 }
 
 const formatINR = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
-const STATUS_STYLES = {
-  pending: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+const STATUS_STYLES: Record<OrderView, string> = {
+  awaiting_payment: "bg-gray-500/20 text-gray-300 border-gray-500/30",
+  to_send: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   delivered: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
   cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
 };
@@ -71,9 +76,9 @@ export default function AdminDashboardPage() {
           href: "/admin/orders",
         },
         {
-          title: "Pending Orders",
+          title: "Paid Orders To Send",
           value: `${stats.pendingOrders}`,
-          change: `${formatINR(stats.pendingValue)} waiting to be sent`,
+          change: `${formatINR(stats.pendingValue)} to send · ${stats.awaitingPayment} awaiting payment`,
           icon: Clock,
           color: "text-amber-400 bg-amber-500/10 border-amber-500/20",
           href: "/admin/orders",
@@ -193,7 +198,7 @@ export default function AdminDashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-800/60 text-gray-300">
                     {recentOrders.map((ord) => {
-                      const status = ord.orderStatus || "pending";
+                      const status = getOrderView(ord);
                       return (
                         <tr key={ord.orderId} className="hover:bg-gray-800/30 transition">
                           <td className="p-4">
@@ -221,7 +226,7 @@ export default function AdminDashboardPage() {
                           <td className="p-4 font-unbounded font-bold text-white">{formatINR(ord.totalAmount)}</td>
                           <td className="p-4">
                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase ${STATUS_STYLES[status]}`}>
-                              {status}
+                              {status.replace("_", " ")}
                             </span>
                           </td>
                           <td className="p-4 text-right">

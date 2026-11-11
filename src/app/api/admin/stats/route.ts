@@ -19,7 +19,25 @@ export async function GET() {
   const [orderStats, weekRevenue, productCount, productsWithoutLink, categoryCount, recentOrders] =
     await Promise.all([
       Order.aggregate<{ _id: string; count: number; revenue: number }>([
-        { $group: { _id: { $ifNull: ["$orderStatus", "pending"] }, count: { $sum: 1 }, revenue: { $sum: "$totalAmount" } } },
+        {
+          $group: {
+            // Unpaid online orders are counted separately from paid orders waiting to be sent
+            _id: {
+              $cond: [
+                {
+                  $and: [
+                    { $not: [{ $in: ["$orderStatus", ["delivered", "cancelled"]] }] },
+                    { $ne: ["$paymentStatus", "completed"] },
+                  ],
+                },
+                "awaiting_payment",
+                { $ifNull: ["$orderStatus", "pending"] },
+              ],
+            },
+            count: { $sum: 1 },
+            revenue: { $sum: "$totalAmount" },
+          },
+        },
       ]),
       Order.aggregate<{ revenue: number }>([
         { $match: { orderStatus: "delivered", createdAt: { $gte: weekAgo } } },
@@ -29,7 +47,7 @@ export async function GET() {
       Product.countDocuments({ status: "active", accessUrl: { $in: ["", null] }, pdfFileName: { $in: ["", null] } }),
       Category.countDocuments({}),
       Order.find({})
-        .select("orderId customerName customerEmail items.title totalAmount orderStatus downloadToken createdAt")
+        .select("orderId customerName customerEmail items.title totalAmount orderStatus paymentStatus paymentMethod downloadToken createdAt")
         .sort({ createdAt: -1 })
         .limit(6)
         .lean(),
@@ -44,6 +62,7 @@ export async function GET() {
       revenueThisWeek: weekRevenue[0]?.revenue || 0,
       pendingOrders: byStatus.pending?.count || 0,
       pendingValue: byStatus.pending?.revenue || 0,
+      awaitingPayment: byStatus.awaiting_payment?.count || 0,
       deliveredOrders: byStatus.delivered?.count || 0,
       productCount,
       productsWithoutLink,

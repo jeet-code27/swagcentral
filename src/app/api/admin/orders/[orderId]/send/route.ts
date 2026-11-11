@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { Order } from "@/models/Order";
 import { sendOrderDeliveryEmail } from "@/lib/mailer";
+import { isOrderPaid } from "@/lib/orderState";
 
 /**
  * Admin action: email the product access links to the customer and mark the order delivered.
@@ -24,6 +25,12 @@ export async function POST(
   const order = await Order.findOne({ orderId });
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+  if (!isOrderPaid(order)) {
+    return NextResponse.json(
+      { error: "This order is not paid yet. Mark it as paid first if you received the money another way." },
+      { status: 400 }
+    );
   }
   if (order.orderStatus === "cancelled") {
     return NextResponse.json({ error: "Order is cancelled" }, { status: 400 });

@@ -8,6 +8,7 @@ import {
   Ban,
   CheckCircle,
   Clock,
+  CreditCard,
   ExternalLink,
   Loader2,
   Mail,
@@ -30,6 +31,7 @@ import {
 } from "@/components/admin/AdminUI";
 import { cdnImage } from "@/lib/image";
 import { pdfDisplayName } from "@/lib/pdf";
+import { getOrderView, isOrderPaid, OrderView } from "@/lib/orderState";
 
 interface OrderItem {
   productId: string;
@@ -51,6 +53,12 @@ interface OrderDetail {
   currency: string;
   paymentStatus: "pending" | "completed" | "failed";
   paymentMethod: string;
+  paymentId?: string;
+  paymentTxnId?: string;
+  paymentMode?: string;
+  paymentError?: string;
+  paymentAttempts?: number;
+  paidAt?: string;
   orderStatus?: "pending" | "delivered" | "cancelled";
   confirmationEmailSent?: boolean;
   emailSent: boolean;
@@ -76,9 +84,10 @@ const formatDate = (value?: string) =>
 
 const hasAccess = (item: OrderItem) => !!(item.accessUrl || item.pdfFileName);
 
-function StatusBadge({ status }: { status: "pending" | "delivered" | "cancelled" }) {
+function StatusBadge({ status }: { status: OrderView }) {
   const styles = {
-    pending: ["bg-amber-500/20 text-amber-400 border-amber-500/30", Clock, "PENDING"],
+    awaiting_payment: ["bg-gray-500/20 text-gray-300 border-gray-500/30", CreditCard, "AWAITING PAYMENT"],
+    to_send: ["bg-amber-500/20 text-amber-400 border-amber-500/30", Clock, "PAID · TO SEND"],
     delivered: ["bg-emerald-500/20 text-emerald-400 border-emerald-500/30", CheckCircle, "DELIVERED"],
     cancelled: ["bg-red-500/20 text-red-400 border-red-500/30", Ban, "CANCELLED"],
   } as const;
@@ -115,6 +124,8 @@ export default function OrderDetailPage() {
 
   const status = order.orderStatus || "pending";
   const ready = order.items.every(hasAccess);
+  const view = getOrderView(order);
+  const paid = isOrderPaid(order);
 
   const showNotice = (type: "success" | "error", text: string) => {
     setNotice({ type, text });
@@ -171,6 +182,20 @@ export default function OrderDetailPage() {
     );
   };
 
+  const markPaid = () => {
+    if (
+      !confirm(
+        `Mark ${order.orderId} as paid (₹${order.totalAmount})? Only do this if you have received the money, e.g. by direct UPI.`
+      )
+    )
+      return;
+    call(
+      `/api/admin/orders/${order.orderId}`,
+      { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ markPaid: true }) },
+      "Order marked as paid"
+    );
+  };
+
   const phoneDigits = (order.customerPhone || "").replace(/\D/g, "");
   const whatsappNumber = phoneDigits.length === 10 ? `91${phoneDigits}` : phoneDigits;
 
@@ -182,7 +207,7 @@ export default function OrderDetailPage() {
         title={`Order ${order.orderId}`}
         subtitle={
           <span className="flex flex-wrap items-center gap-2">
-            <StatusBadge status={status} /> Placed {formatDate(order.createdAt)}
+            <StatusBadge status={view} /> Placed {formatDate(order.createdAt)}
           </span>
         }
         actions={
@@ -200,11 +225,16 @@ export default function OrderDetailPage() {
                 Reopen
               </button>
             )}
+            {!paid && status === "pending" && (
+              <button onClick={markPaid} disabled={busy} className={secondaryButton + " text-emerald-300"}>
+                <CreditCard size={14} /> Mark as Paid
+              </button>
+            )}
             {status !== "cancelled" && (
               <button
                 onClick={sendOrder}
-                disabled={busy || !ready || editing}
-                title={!ready ? "Add an access link for every item first" : ""}
+                disabled={busy || !ready || !paid || editing}
+                title={!paid ? "Not paid yet" : !ready ? "Add an access link for every item first" : ""}
                 className={primaryButton}
               >
                 {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
@@ -225,6 +255,15 @@ export default function OrderDetailPage() {
         >
           {notice.type === "success" ? <CheckCircle size={15} /> : <AlertTriangle size={15} />}
           {notice.text}
+        </div>
+      )}
+
+      {!paid && status === "pending" && (
+        <div className="p-4 bg-gray-800/60 border border-gray-700 rounded-2xl text-xs text-gray-200 flex items-center gap-2">
+          <CreditCard size={16} className="text-gray-300 flex-shrink-0" />
+          {order.paymentStatus === "failed"
+            ? `Payment failed${order.paymentError ? `: ${order.paymentError}` : ""}. The customer can retry from their order page.`
+            : "Waiting for the customer to pay. It updates automatically once PayU confirms the payment."}
         </div>
       )}
 
@@ -397,6 +436,22 @@ export default function OrderDetailPage() {
                 </span>
               </DetailRow>
               <DetailRow label="Method">{order.paymentMethod}</DetailRow>
+              {order.paymentMode && <DetailRow label="Paid Using">{order.paymentMode}</DetailRow>}
+              {order.paidAt && <DetailRow label="Paid At">{formatDate(order.paidAt)}</DetailRow>}
+              {order.paymentId && <DetailRow label="PayU Payment ID">{order.paymentId}</DetailRow>}
+              {order.paymentTxnId && (
+                <DetailRow label="Transaction ID">
+                  {order.paymentTxnId}
+                  {(order.paymentAttempts || 0) > 1 && (
+                    <span className="text-gray-500"> · {order.paymentAttempts} attempts</span>
+                  )}
+                </DetailRow>
+              )}
+              {order.paymentError && order.paymentStatus !== "completed" && (
+                <DetailRow label="Last Error">
+                  <span className="text-red-300">{order.paymentError}</span>
+                </DetailRow>
+              )}
               <DetailRow label="Currency">{order.currency}</DetailRow>
             </dl>
           </Card>

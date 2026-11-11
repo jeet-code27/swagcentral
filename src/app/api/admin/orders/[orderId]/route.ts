@@ -76,6 +76,14 @@ export async function PATCH(
     order.orderStatus = body.orderStatus;
   }
 
+  // Admin confirms a payment received outside PayU (e.g. direct UPI transfer)
+  if (body.markPaid === true && order.paymentStatus !== "completed") {
+    order.paymentStatus = "completed";
+    order.paymentMode = "Marked paid by admin";
+    order.paymentError = "";
+    order.paidAt = new Date();
+  }
+
   await order.save();
   return NextResponse.json({ success: true, order: order.toObject() });
 }

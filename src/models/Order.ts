@@ -21,6 +21,12 @@ export interface IOrder extends Document {
   paymentStatus: "pending" | "completed" | "failed";
   paymentMethod: string;
   paymentId?: string;
+  /** Latest PayU transaction ID sent for this order (a new one per payment attempt). */
+  paymentTxnId?: string;
+  paymentAttempts: number;
+  paymentMode?: string;
+  paymentError?: string;
+  paidAt?: Date;
   orderStatus: "pending" | "delivered" | "cancelled";
   confirmationEmailSent: boolean;
   deliveredAt?: Date;
@@ -61,6 +67,11 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentMethod: { type: String, default: "Online" },
     paymentId: { type: String, default: "" },
+    paymentTxnId: { type: String, default: "", index: true },
+    paymentAttempts: { type: Number, default: 0 },
+    paymentMode: { type: String, default: "" },
+    paymentError: { type: String, default: "" },
+    paidAt: { type: Date },
     orderStatus: {
       type: String,
       enum: ["pending", "delivered", "cancelled"],

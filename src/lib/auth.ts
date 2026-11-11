@@ -27,7 +27,9 @@ export function signAdminToken(email: string): string {
 
 export function verifyAdminToken(token: string): AdminTokenPayload | null {
   try {
-    return jwt.verify(token, getJwtSecret()) as AdminTokenPayload;
+    const payload = jwt.verify(token, getJwtSecret()) as AdminTokenPayload;
+    // Only admin tokens grant admin access (customer sessions use a different secret and role)
+    return payload.role === "super_admin" ? payload : null;
   } catch {
     return null;
   }
