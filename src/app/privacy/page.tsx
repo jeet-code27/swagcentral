@@ -43,6 +43,7 @@ export default function PrivacyPage() {
       <ul>
         <li>PayU, to process payments.</li>
         <li>Our email provider, to send order and login emails.</li>
+        <li>Google and Meta, for analytics and advertising measurement (see Cookies and tracking below).</li>
         <li>Our hosting, database and file storage providers, which store data on our behalf.</li>
         <li>Government authorities, when required by law.</li>
       </ul>
@@ -56,8 +57,21 @@ export default function PrivacyPage() {
         You can ask us to correct or delete your personal information, subject to records we must keep by law.
         Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
       </p>
-      <h2>Cookies</h2>
-      <p>We use essential cookies only, to keep you signed in to My Orders. Removing them simply signs you out.</p>
+      <h2>Cookies and tracking</h2>
+      <ul>
+        <li>
+          <strong>Essential cookies</strong> keep you signed in to My Orders and remember your cart.
+        </li>
+        <li>
+          <strong>Analytics and advertising:</strong> we use Google Tag Manager and the Meta (Facebook) Pixel to
+          understand how the store is used and to measure and improve our ads. They record actions such as pages
+          viewed, products added to the cart and purchases, and may set cookies on your device.
+        </li>
+      </ul>
+      <p>
+        You can block or delete cookies in your browser settings, and manage ad preferences in your Facebook and
+        Google account settings. Blocking them does not stop you from buying from us.
+      </p>
       <h2>Contact</h2>
       <p>
         {SITE.name}, {SITE.location}. Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -21,6 +21,7 @@ import { useCart } from "@/context/CartContext";
 import { cdnImage } from "@/lib/image";
 import { redirectToPayu } from "@/lib/payuClient";
 import { readJson } from "@/lib/http";
+import { productParams, trackPixel } from "@/lib/metaPixel";
 
 const formatINR = (value: number) =>
   `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
@@ -40,6 +41,14 @@ export default function CheckoutClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Shown while the browser loads PayU, instead of flashing an empty cart
   const [redirecting, setRedirecting] = useState(false);
+
+  // Meta Pixel: checkout started (once per visit, after the saved cart has loaded)
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (!isLoaded || cart.length === 0 || checkoutTracked.current) return;
+    checkoutTracked.current = true;
+    trackPixel("InitiateCheckout", productParams(cart.map((i) => ({ id: i.id, price: i.price }))));
+  }, [isLoaded, cart]);
   // Shown when PayU sends the customer back here after an error
   const [errorMsg, setErrorMsg] = useState(() =>
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("payment") === "error"
@@ -121,6 +130,10 @@ export default function CheckoutClient() {
 
       // The cart is cleared on the order page, so going back from PayU keeps it intact
       setRedirecting(true);
+      trackPixel("AddPaymentInfo", {
+        ...productParams(cart.map((i) => ({ id: i.id, price: i.price }))),
+        value: payable,
+      });
       if (data.payment) {
         // Go to PayU's secure payment page; PayU brings the customer back to their order page
         redirectToPayu(data.payment);

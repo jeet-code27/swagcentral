@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CheckCircle, X } from "lucide-react";
+import { productParams, trackPixel } from "@/lib/metaPixel";
 
 export interface CartItem {
   id: string;
@@ -64,6 +65,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [cart, isLoaded]);
 
   const addToCart: CartContextType["addToCart"] = (product, options) => {
+    if (!cart.some((item) => item.id === product.id)) {
+      trackPixel("AddToCart", {
+        ...productParams([{ id: product.id, price: product.price }]),
+        content_name: product.title,
+        content_category: product.category,
+      });
+    }
     setCart((prev) => {
       // Digital products only need quantity 1 per purchase
       if (prev.some((item) => item.id === product.id)) return prev;

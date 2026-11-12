@@ -23,6 +23,7 @@ import Footer from "@/components/Footer";
 import { cdnImage } from "@/lib/image";
 import { redirectToPayu } from "@/lib/payuClient";
 import { useCart } from "@/context/CartContext";
+import { productParams, trackPixel } from "@/lib/metaPixel";
 import { readJson } from "@/lib/http";
 
 
@@ -68,6 +69,37 @@ function DownloadContent() {
         setPaymentStatus(data.order.paymentStatus || "pending");
         setPaymentMethod(data.order.paymentMethod || "");
         setTotalAmount(data.order.totalAmount || 0);
+
+        // Meta Pixel: count each paid order once, even if the page is opened again
+        if (data.order.paymentStatus === "completed") {
+          const key = `fb_purchase_${data.order.orderId}`;
+          let alreadySent = false;
+          try {
+            alreadySent = localStorage.getItem(key) === "1";
+          } catch {
+            // Storage blocked: still send; Meta de-duplicates by event ID
+          }
+          if (!alreadySent) {
+            trackPixel(
+              "Purchase",
+              {
+                ...productParams(
+                  (data.order.items || []).map((i: { productId?: string; price: number }) => ({
+                    id: i.productId || "",
+                    price: i.price,
+                  }))
+                ),
+                value: data.order.totalAmount,
+              },
+              data.order.orderId
+            );
+            try {
+              localStorage.setItem(key, "1");
+            } catch {
+              // Ignore
+            }
+          }
+        }
 
         if (data.order.orderStatus === "delivered") {
           try {

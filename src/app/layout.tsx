@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import JsonLd from "@/components/JsonLd";
 import { GoogleTagManager, GoogleTagManagerNoScript } from "@/components/GoogleTagManager";
+import MetaPixel from "@/components/MetaPixel";
 import { SITE } from "@/lib/site";
 
 const unbounded = Unbounded({
@@ -75,6 +76,7 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col font-body bg-[#fdfbf7] text-[#111827] antialiased">
         <GoogleTagManagerNoScript />
         <GoogleTagManager />
+        <MetaPixel />
         <JsonLd data={siteSchema} />
         <CartProvider>{children}</CartProvider>
       </body>

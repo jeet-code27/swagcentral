@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, User, ShoppingBag, Phone, Menu, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { trackPixel } from "@/lib/metaPixel";
 
 export default function Header() {
   const { totalItems } = useCart();
@@ -17,6 +18,7 @@ export default function Header() {
     e.preventDefault();
     const q = searchQuery.trim();
     setMobileMenuOpen(false);
+    if (q) trackPixel("Search", { search_string: q });
     router.push(q ? `/shop?q=${encodeURIComponent(q)}` : "/shop");
   };
 

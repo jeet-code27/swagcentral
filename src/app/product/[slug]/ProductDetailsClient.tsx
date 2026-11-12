@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -20,6 +20,7 @@ import ProductCard from "@/components/ProductCard";
 import { formatProductDescription, formatShortDescription } from "@/lib/formatter";
 import { cdnImage } from "@/lib/image";
 import { formatPrice } from "@/lib/price";
+import { productParams, trackPixel } from "@/lib/metaPixel";
 
 interface ProductDetailsClientProps {
   product: any;
@@ -34,6 +35,15 @@ export default function ProductDetailsClient({
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"description" | "features" | "license">("description");
   const [added, setAdded] = useState(false);
+
+  // Meta Pixel: product viewed
+  useEffect(() => {
+    trackPixel("ViewContent", {
+      ...productParams([{ id: product._id || product.slug, price: product.price }]),
+      content_name: product.title,
+      content_category: product.categoryName || product.category,
+    });
+  }, [product._id, product.slug, product.price, product.title, product.categoryName, product.category]);
 
   const handleAddToCart = () => {
     addToCart({
