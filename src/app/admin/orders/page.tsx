@@ -7,6 +7,8 @@ import {
   Ban,
   CheckCircle,
   ChevronRight,
+  CircleX,
+  Filter,
   Clock,
   CreditCard,
   ExternalLink,
@@ -24,7 +26,6 @@ import {
 } from "lucide-react";
 import { cdnImage } from "@/lib/image";
 import { pdfDisplayName } from "@/lib/pdf";
-import { getOrderView, OrderView } from "@/lib/orderState";
 import Pagination, { usePagination } from "@/components/Pagination";
 import { PdfUploadInput } from "@/components/admin/AdminUI";
 
@@ -48,6 +49,11 @@ interface Order {
   orderStatus?: "pending" | "delivered" | "cancelled";
   paymentStatus?: "pending" | "completed" | "failed";
   paymentMethod?: string;
+  paymentMode?: string;
+  paymentError?: string;
+  paymentAttempts?: number;
+  paymentTxnId?: string;
+  paidAt?: string;
   confirmationEmailSent?: boolean;
   emailSent: boolean;
   emailSentAt?: string;
@@ -55,22 +61,52 @@ interface Order {
   createdAt: string;
 }
 
-type StatusFilter = OrderView | "all";
+/** One plain-language status per order, combining payment and delivery. */
+type AdminStatus = "to_send" | "delivered" | "payment_failed" | "not_paid" | "cancelled";
+type StatusFilter = AdminStatus | "all";
+
+function adminStatus(o: Order): AdminStatus {
+  if (o.orderStatus === "cancelled") return "cancelled";
+  if (o.orderStatus === "delivered") return "delivered";
+  if (o.paymentStatus === "completed") return "to_send";
+  if (o.paymentStatus === "failed") return "payment_failed";
+  return "not_paid";
+}
 
 const FILTERS: { key: StatusFilter; label: string }[] = [
-  { key: "to_send", label: "To Send" },
-  { key: "awaiting_payment", label: "Awaiting Payment" },
-  { key: "delivered", label: "Delivered" },
+  { key: "all", label: "All orders" },
+  { key: "to_send", label: "Paid – products to send" },
+  { key: "delivered", label: "Paid – products sent" },
+  { key: "payment_failed", label: "Payment failed" },
+  { key: "not_paid", label: "Not paid yet" },
   { key: "cancelled", label: "Cancelled" },
-  { key: "all", label: "All" },
 ];
 
-const STATUS: Record<OrderView, { label: string; cls: string; icon: typeof Clock }> = {
-  to_send: { label: "Paid · To Send", cls: "bg-amber-500/15 text-amber-300 border-amber-500/30", icon: Clock },
-  awaiting_payment: { label: "Awaiting Payment", cls: "bg-gray-500/15 text-gray-300 border-gray-500/30", icon: CreditCard },
-  delivered: { label: "Delivered", cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", icon: CheckCircle },
-  cancelled: { label: "Cancelled", cls: "bg-red-500/15 text-red-300 border-red-500/30", icon: Ban },
+const STATUS: Record<AdminStatus, { label: string; cls: string; icon: typeof Clock }> = {
+  to_send: { label: "Paid · Send products", cls: "bg-amber-500/15 text-amber-300 border-amber-500/30", icon: Clock },
+  delivered: { label: "Paid · Products sent", cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30", icon: CheckCircle },
+  payment_failed: { label: "Payment failed", cls: "bg-red-500/15 text-red-300 border-red-500/30", icon: CircleX },
+  not_paid: { label: "Not paid yet", cls: "bg-gray-500/15 text-gray-300 border-gray-500/30", icon: CreditCard },
+  cancelled: { label: "Cancelled", cls: "bg-gray-700/30 text-gray-400 border-gray-600/40", icon: Ban },
 };
+
+/** Payment result in plain words: paid how/when, or why it was not paid. */
+function paymentSummary(o: Order): { paid: boolean; text: string } {
+  if (o.paymentStatus === "completed") {
+    const how = o.paymentMode
+      ? ` via ${o.paymentMode}`
+      : o.paymentMethod && o.paymentMethod !== "PayU"
+      ? ` (${o.paymentMethod})`
+      : "";
+    const when = o.paidAt ? ` · ${fullDate(o.paidAt)}` : "";
+    return { paid: true, text: `₹${o.totalAmount.toLocaleString("en-IN")}${how}${when}` };
+  }
+  if (o.paymentError) return { paid: false, text: o.paymentError };
+  if (!o.paymentTxnId && !o.paymentAttempts) {
+    return { paid: false, text: "Customer filled in checkout but never opened the payment page" };
+  }
+  return { paid: false, text: "Waiting — the customer is on the PayU page or has just left it" };
+}
 
 const hasAccess = (item: OrderItem) => !!(item.accessUrl || item.pdfFileName);
 
@@ -116,7 +152,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("to_send");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -124,6 +160,8 @@ export default function AdminOrdersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftItems, setDraftItems] = useState<{ accessUrl: string; pdfFileName: string }[]>([]);
   const [saveToProduct, setSaveToProduct] = useState(true);
+
+  const [syncing, setSyncing] = useState(false);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -140,10 +178,38 @@ export default function AdminOrdersPage() {
     }
   }, []);
 
+  /** Asks PayU about recent unpaid orders (catches missed payments and fills in failure reasons). */
+  const syncPayments = useCallback(
+    async (showResult: boolean) => {
+      setSyncing(true);
+      try {
+        const res = await fetch("/api/admin/orders/sync-payments", { method: "POST" });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not check payments");
+        await loadOrders();
+        if (showResult || data.paid > 0) {
+          setNotice({
+            type: "success",
+            text:
+              data.paid > 0
+                ? `PayU check: ${data.paid} more order${data.paid > 1 ? "s were" : " was"} actually paid and moved to "Paid – products to send".`
+                : `PayU check done: ${data.checked} unpaid order${data.checked === 1 ? "" : "s"} checked, no new payments.`,
+          });
+        }
+      } catch (err) {
+        if (showResult) setNotice({ type: "error", text: (err as Error).message });
+      } finally {
+        setSyncing(false);
+      }
+    },
+    [loadOrders]
+  );
+
   useEffect(() => {
+    // Show orders right away, then quietly re-check unpaid ones with PayU
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadOrders();
-  }, [loadOrders]);
+    loadOrders().then(() => syncPayments(false));
+  }, [loadOrders, syncPayments]);
 
   const showNotice = (type: "success" | "error", text: string) => {
     setNotice({ type, text });
@@ -209,12 +275,12 @@ export default function AdminOrdersPage() {
   };
 
   const counts = Object.fromEntries(
-    FILTERS.map(({ key }) => [key, key === "all" ? orders.length : orders.filter((o) => getOrderView(o) === key).length])
+    FILTERS.map(({ key }) => [key, key === "all" ? orders.length : orders.filter((o) => adminStatus(o) === key).length])
   ) as Record<StatusFilter, number>;
 
   const q = search.trim().toLowerCase();
   const filtered = orders.filter((o) => {
-    if (statusFilter !== "all" && getOrderView(o) !== statusFilter) return false;
+    if (statusFilter !== "all" && adminStatus(o) !== statusFilter) return false;
     if (!q) return true;
     return (
       o.orderId.toLowerCase().includes(q) ||
@@ -232,44 +298,55 @@ export default function AdminOrdersPage() {
         <div>
           <h1 className="font-unbounded font-black text-xl md:text-2xl text-white tracking-tight uppercase">Orders</h1>
           <p className="text-xs text-gray-400 mt-1">
-            Paid orders appear under <span className="text-amber-300 font-semibold">To Send</span>. Add links if
-            missing, then send.
+            Every order shows whether it was paid, and if not, why. Send products for orders marked{" "}
+            <span className="text-amber-300 font-semibold">Paid · Send products</span>.
           </p>
         </div>
-        <button onClick={loadOrders} className={btn.secondary} title="Refresh">
-          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-          <span className="hidden sm:inline">Refresh</span>
+        <button
+          onClick={() => syncPayments(true)}
+          disabled={syncing}
+          className={btn.secondary}
+          title="Ask PayU for the latest status of unpaid orders"
+        >
+          <RefreshCw size={14} className={syncing || loading ? "animate-spin" : ""} />
+          <span className="hidden sm:inline">{syncing ? "Checking PayU…" : "Check payments"}</span>
         </button>
       </div>
 
-      {/* Tabs + search */}
-      <div className="space-y-3">
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none]">
-          {FILTERS.map(({ key, label }) => {
-            const active = statusFilter === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setStatusFilter(key)}
-                className={`flex-shrink-0 inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-bold transition border ${
-                  active
-                    ? "bg-[#ff5500] border-[#ff5500] text-white"
-                    : "bg-[#131b2e] border-gray-800 text-gray-300 hover:border-gray-600"
-                }`}
-              >
-                {label}
-                <span
-                  className={`min-w-5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                    active ? "bg-white/25" : key === "to_send" && counts.to_send > 0 ? "bg-amber-500 text-black" : "bg-gray-800"
-                  }`}
-                >
-                  {counts[key]}
-                </span>
-              </button>
-            );
-          })}
+      {counts.to_send > 0 && statusFilter !== "to_send" && (
+        <button
+          onClick={() => setStatusFilter("to_send")}
+          className="w-full flex items-center justify-between gap-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-left hover:bg-amber-500/15 transition"
+        >
+          <span className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-amber-200">
+            <Clock size={16} className="flex-shrink-0" />
+            {counts.to_send} paid order{counts.to_send > 1 ? "s are" : " is"} waiting for products to be sent
+          </span>
+          <span className="text-xs font-bold text-amber-300 flex items-center gap-1 flex-shrink-0">
+            Show <ChevronRight size={14} />
+          </span>
+        </button>
+      )}
+
+      {/* Status filter + search */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative sm:w-72 flex-shrink-0">
+          <Filter size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            aria-label="Filter orders by status"
+            className="w-full appearance-none bg-[#131b2e] border border-gray-800 rounded-xl pl-9 pr-9 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff5500] cursor-pointer"
+          >
+            {FILTERS.map(({ key, label }) => (
+              <option key={key} value={key}>
+                {label} ({counts[key]})
+              </option>
+            ))}
+          </select>
+          <ChevronRight size={15} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-gray-500 pointer-events-none" />
         </div>
-        <div className="relative">
+        <div className="relative flex-1">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
@@ -317,7 +394,7 @@ export default function AdminOrdersPage() {
       ) : filtered.length === 0 ? (
         <div className="bg-[#131b2e] border border-gray-800 rounded-2xl p-10 text-center space-y-1">
           <p className="text-sm text-gray-300 font-semibold">
-            {q ? "No orders match your search." : statusFilter === "to_send" ? "All caught up! 🎉" : "No orders here."}
+            {q ? "No orders match your search." : statusFilter === "to_send" ? "All caught up! 🎉" : "No orders with this status."}
           </p>
           {!q && statusFilter === "to_send" && (
             <p className="text-xs text-gray-500">There are no paid orders waiting to be sent.</p>
@@ -326,8 +403,9 @@ export default function AdminOrdersPage() {
       ) : (
         <div className="space-y-4">
           {pageItems.map((order) => {
-            const view = getOrderView(order);
+            const view = adminStatus(order);
             const status = STATUS[view];
+            const payment = paymentSummary(order);
             const StatusIcon = status.icon;
             const isEditing = editingId === order.orderId;
             const isBusy = busyId === order.orderId;
@@ -335,8 +413,8 @@ export default function AdminOrdersPage() {
 
             // The single most useful next step for this order
             const next =
-              view === "awaiting_payment"
-                ? { tone: "text-gray-400", icon: CreditCard, text: order.paymentStatus === "failed" ? "Payment failed or was cancelled — waiting for the customer to retry." : "Waiting for the customer to pay." }
+              view === "payment_failed" || view === "not_paid"
+                ? { tone: "text-gray-400", icon: MessageCircle, text: "Nothing to send. You can message the customer to complete the payment." }
                 : view === "to_send" && missing > 0
                 ? { tone: "text-amber-300", icon: AlertTriangle, text: `Add the access link for ${missing} product${missing > 1 ? "s" : ""}, then send.` }
                 : view === "to_send"
@@ -394,6 +472,27 @@ export default function AdminOrdersPage() {
                       <StatusIcon size={12} /> {status.label}
                     </span>
                   </div>
+                </div>
+
+                {/* Payment result */}
+                <div
+                  className={`mx-4 sm:mx-5 mb-4 px-3 py-2.5 rounded-lg border text-xs flex items-start gap-2 ${
+                    payment.paid
+                      ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-200"
+                      : view === "cancelled"
+                      ? "bg-gray-800/30 border-gray-700/50 text-gray-400"
+                      : "bg-red-500/5 border-red-500/20 text-red-200"
+                  }`}
+                >
+                  {payment.paid ? (
+                    <CheckCircle size={14} className="flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <CircleX size={14} className="flex-shrink-0 mt-0.5" />
+                  )}
+                  <span>
+                    <span className="font-bold">{payment.paid ? "Payment received: " : "Not paid: "}</span>
+                    {payment.text}
+                  </span>
                 </div>
 
                 {/* Products */}
@@ -489,7 +588,7 @@ export default function AdminOrdersPage() {
                       </>
                     ) : (
                       <>
-                        {view === "awaiting_payment" && (
+                        {(view === "not_paid" || view === "payment_failed") && (
                           <>
                             <button onClick={() => cancelOrder(order)} disabled={isBusy} className={btn.danger}>
                               <Ban size={14} /> Cancel

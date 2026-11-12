@@ -98,3 +98,47 @@ export async function applyPayuTransaction(
 
   return { outcome: "pending", order };
 }
+
+const NOT_FOUND_REASON = "Customer left before completing the payment on PayU";
+
+/**
+ * Re-checks unpaid orders with PayU. Catches payments whose browser return never reached us
+ * (e.g. the customer closed the tab) and records why the others did not go through
+ * (cancelled, page timed out, declined...). Paid orders get the usual confirmation email.
+ */
+export async function syncUnpaidOrders(days = 15, limit = 30) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const orders = await Order.find({
+    paymentStatus: "pending",
+    orderStatus: { $ne: "cancelled" },
+    paymentTxnId: { $nin: ["", null] },
+    createdAt: { $gte: since },
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit);
+
+  let paid = 0;
+  let failed = 0;
+  await Promise.all(
+    orders.map(async (order) => {
+      try {
+        const { outcome } = await applyPayuTransaction(order.paymentTxnId!);
+        if (outcome === "paid") paid++;
+        else if (outcome === "failed") failed++;
+        else if (outcome === "pending") {
+          // PayU has nothing (or nothing final) for this attempt
+          const ageMinutes = (Date.now() - order.updatedAt.getTime()) / 60000;
+          if (ageMinutes > 20 && !order.paymentError) {
+            await Order.updateOne(
+              { _id: order._id, paymentStatus: "pending" },
+              { paymentError: NOT_FOUND_REASON }
+            );
+          }
+        }
+      } catch (error) {
+        console.error(`PayU sync failed for ${order.orderId}:`, error);
+      }
+    })
+  );
+  return { checked: orders.length, paid, failed };
+}

@@ -178,7 +178,7 @@ export async function verifyPayuTransaction(txnid: string): Promise<PayuTransact
   const rawError = [tx.error_Message, tx.field9].find(
     (m) => typeof m === "string" && m.trim() && m.trim().toUpperCase() !== "NO ERROR"
   );
-  const errorMessage = unmapped === "userCancelled" ? "Cancelled by customer" : String(rawError || unmapped);
+  const errorMessage = payuFailureReason(unmapped, rawError ? String(rawError).trim() : "");
   return {
     status: status === "success" ? "success" : status === "pending" ? "pending" : "failure",
     amount: parseFloat(tx.amt ?? tx.transaction_amount ?? "0"),
@@ -187,4 +187,23 @@ export async function verifyPayuTransaction(txnid: string): Promise<PayuTransact
     unmappedStatus: unmapped,
     errorMessage,
   };
+}
+
+/** Plain-language reason for an unsuccessful PayU transaction (shown to the admin). */
+export function payuFailureReason(unmappedStatus: string, bankMessage = ""): string {
+  switch (unmappedStatus.toLowerCase()) {
+    case "usercancelled":
+      return "Customer cancelled on the PayU payment page";
+    case "bounced":
+      return "Customer opened the PayU page but did not pay (page timed out)";
+    case "dropped":
+      return "Customer closed the PayU page without paying";
+    case "auto refund":
+    case "refunded":
+      return "Payment was refunded";
+    case "failed":
+      return bankMessage ? `Payment declined: ${bankMessage}` : "Payment declined by the bank or UPI app";
+    default:
+      return bankMessage || unmappedStatus || "Payment not completed";
+  }
 }
