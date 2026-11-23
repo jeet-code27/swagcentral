@@ -376,6 +376,6 @@ export const REVIEWS = [
     name: "Ethan Parker",
     rating: 5,
     title: "OUTSTANDING DIGITAL PRODUCTS & SUPER FAST AUTOMATED EMAIL ACCESS.",
-    review: "Got the email immediately with Google Drive link and direct PDF download. Support on WhatsApp +91 9821774565 was also very responsive.",
+    review: "Got the email immediately with Google Drive link and direct PDF download. Email support was also very responsive.",
   },
 ];

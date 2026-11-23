@@ -46,7 +46,7 @@ const siteSchema = [
     sameAs: Object.values(SITE.social).filter(Boolean),
     contactPoint: {
       "@type": "ContactPoint",
-      telephone: SITE.whatsapp.replace(/\s/g, ""),
+      email: SITE.email,
       contactType: "customer support",
       areaServed: "IN",
       availableLanguage: ["English", "Hindi"],

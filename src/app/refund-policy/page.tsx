@@ -36,8 +36,7 @@ export default function RefundPolicyPage() {
       </p>
       <h2>How to ask for a refund</h2>
       <p>
-        Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or WhatsApp{" "}
-        <a href={SITE.whatsappLink}>{SITE.whatsapp}</a> within 7 days of your order, with your order ID and the
+        Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> within 7 days of your order, with your order ID and the
         reason. You can find your order ID in your confirmation email or in <Link href="/account">My Orders</Link>.
       </p>
       <h2>Refund timeline</h2>

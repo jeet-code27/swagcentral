@@ -52,7 +52,7 @@ export default function CheckoutClient() {
   // Shown when PayU sends the customer back here after an error
   const [errorMsg, setErrorMsg] = useState(() =>
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("payment") === "error"
-      ? "Something went wrong with the payment. If money was deducted, contact us on WhatsApp with your email address."
+      ? "Something went wrong with the payment. If money was deducted, email swagcentral012@gmail.com with your email address."
       : ""
   );
 
@@ -267,7 +267,7 @@ export default function CheckoutClient() {
                 </Field>
               </div>
 
-              <Field label="Mobile Number" required hint="Needed for payment; we may also use it for order support on WhatsApp">
+              <Field label="Mobile Number" required hint="Needed by PayU for the payment">
                 <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="tel"
@@ -480,7 +480,7 @@ export default function CheckoutClient() {
             {[
               { icon: ShieldCheck, label: "Secure Checkout" },
               { icon: CheckCircle, label: "Lifetime Access" },
-              { icon: Headphones, label: "WhatsApp Support" },
+              { icon: Headphones, label: "Email Support" },
             ].map(({ icon: Icon, label }) => (
               <div key={label} className="bg-white rounded-xl border border-gray-200 py-3 px-2">
                 <Icon size={18} className="mx-auto text-[#ff5500]" />

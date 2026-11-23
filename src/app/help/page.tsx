@@ -22,7 +22,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Money was deducted but my order shows payment pending. What should I do?",
-    a: "Bank confirmations can take a few minutes. Your order updates automatically once PayU confirms the payment. If it still shows pending after an hour, WhatsApp us your order ID.",
+    a: "Bank confirmations can take a few minutes. Your order updates automatically once PayU confirms the payment. If it still shows pending after an hour, email us your order ID.",
   },
   {
     q: "How do I see my past orders and downloads?",
@@ -30,7 +30,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "I did not get the email. Where is it?",
-    a: "Check your Spam and Promotions folders and search for SwagCentral. You can also open My Orders to see your links, or contact us on WhatsApp.",
+    a: "Check your Spam and Promotions folders and search for SwagCentral. You can also open My Orders to see your links, or email us.",
   },
   {
     q: "Can I get a refund?",
@@ -64,8 +64,7 @@ export default function HelpPage() {
       ))}
       <h2>Still need help?</h2>
       <p>
-        Visit <Link href="/account">My Orders</Link>, WhatsApp <a href={SITE.whatsappLink}>{SITE.whatsapp}</a> or
-        email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+        Visit <Link href="/account">My Orders</Link> or email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
       </p>
     </InfoPage>
   );

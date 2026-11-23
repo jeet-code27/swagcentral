@@ -126,8 +126,8 @@ function DownloadContent() {
       <main className="flex-1 max-w-xl mx-auto w-full px-4 py-20 text-center space-y-4">
         <h1 className="font-unbounded font-black text-2xl uppercase text-gray-950">Order Not Found</h1>
         <p className="text-sm text-gray-600">
-          This link is invalid or has expired. Please check the link in your email or contact support on
-          WhatsApp +91 9821774565.
+          This link is invalid or has expired. Please check the link in your email or email us at
+          swagcentral012@gmail.com.
         </p>
         <Link href="/" className="inline-flex items-center gap-2 text-xs font-unbounded font-bold text-[#ff5500] uppercase">
           <ArrowLeft size={14} /> Back to Store
@@ -313,16 +313,14 @@ function DownloadContent() {
                 Need help downloading or extracting files?
               </span>
               <p className="text-amber-800 text-[11px]">
-                Our support team is available on WhatsApp +91 9821774565 or email swagcentral012@gmail.com
+                Email our support team at swagcentral012@gmail.com with your order ID
               </p>
             </div>
             <a
-              href="https://wa.me/919821774565"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="mailto:swagcentral012@gmail.com"
               className="bg-black text-white px-4 py-2 rounded-lg font-unbounded font-bold text-[11px] whitespace-nowrap"
             >
-              Chat on WhatsApp
+              Email Support
             </a>
           </div>
 

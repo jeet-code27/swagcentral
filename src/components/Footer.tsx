@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Phone, Mail, MapPin, Headphones } from "lucide-react";
+import { Mail, MapPin, Headphones } from "lucide-react";
 import { SITE } from "@/lib/site";
 
 export default function Footer() {
@@ -31,12 +31,6 @@ export default function Footer() {
                 <span className="font-bold">GURGAON, HARYANA</span>
               </div>
               <div className="flex items-center gap-2 text-gray-800">
-                <Phone size={15} className="text-[#ff5500] flex-shrink-0" />
-                <a href="tel:+919821774565" className="hover:text-[#ff5500] font-bold">
-                  +91 9821774565
-                </a>
-              </div>
-              <div className="flex items-center gap-2 text-gray-800">
                 <Mail size={15} className="text-[#ff5500] flex-shrink-0" />
                 <a href="mailto:swagcentral012@gmail.com" className="hover:text-[#ff5500] font-bold">
                   swagcentral012@gmail.com
@@ -46,13 +40,11 @@ export default function Footer() {
 
             <div className="pt-2">
               <a
-                href="https://wa.me/919821774565"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:swagcentral012@gmail.com"
                 className="inline-flex items-center gap-2 bg-black hover:bg-[#ff5500] text-white text-xs font-unbounded font-bold px-4 py-2 rounded transition"
               >
                 <Headphones size={14} />
-                <span>HELP DESK (WHATSAPP)</span>
+                <span>HELP DESK (EMAIL)</span>
               </a>
             </div>
 

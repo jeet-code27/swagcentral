@@ -3,7 +3,7 @@
 import React, { Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, User, ShoppingBag, Phone, Menu, X } from "lucide-react";
+import { Search, User, ShoppingBag, Mail, Menu, X } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { trackPixel } from "@/lib/metaPixel";
 
@@ -32,10 +32,10 @@ export default function Header() {
               BEST DIGITAL PRODUCTS
             </span>
             <div className="hidden sm:flex items-center gap-1.5 text-gray-300 hover:text-white transition">
-              <Phone size={13} className="text-[#ff5500]" />
+              <Mail size={13} className="text-[#ff5500]" />
               <span>Need help?</span>
-              <a href="tel:+919821774565" className="font-semibold text-white hover:underline">
-                +91 9821774565
+              <a href="mailto:swagcentral012@gmail.com" className="font-semibold text-white hover:underline">
+                swagcentral012@gmail.com
               </a>
             </div>
           </div>

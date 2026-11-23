@@ -133,13 +133,12 @@ function renderEmail(opts: {
 
                     ${opts.footerCta}
 
-                    <!-- WhatsApp & Contact Box -->
+                    <!-- Contact Box -->
                     <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 18px; margin-top: 30px; text-align: center;">
                       <p style="margin: 0 0 8px 0; font-size: 13px; color: #334155; font-weight: 600;">
                         Need assistance or have questions regarding your order?
                       </p>
                       <p style="margin: 0; font-size: 13px; color: #64748b;">
-                        WhatsApp Support: <a href="https://wa.me/919821774565" style="color: #25d366; font-weight: bold; text-decoration: none;">+91 9821774565</a><br/>
                         Email Support: <a href="mailto:swagcentral012@gmail.com" style="color: #ff5500; font-weight: bold; text-decoration: none;">swagcentral012@gmail.com</a>
                       </p>
                     </div>

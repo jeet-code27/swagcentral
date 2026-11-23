@@ -58,8 +58,7 @@ export default function TermsPage() {
       <p>These terms are governed by the laws of India. Courts in Gurgaon, Haryana have jurisdiction.</p>
       <h2>Contact</h2>
       <p>
-        Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or WhatsApp{" "}
-        <a href={SITE.whatsappLink}>{SITE.whatsapp}</a>.
+        Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
       </p>
     </InfoPage>
   );

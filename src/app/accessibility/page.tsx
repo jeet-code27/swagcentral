@@ -24,7 +24,7 @@ export default function AccessibilityPage() {
       <h2>Found a problem?</h2>
       <p>
         If something is hard to use, tell us what page and what you were trying to do. Email{" "}
-        <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or WhatsApp <a href={SITE.whatsappLink}>{SITE.whatsapp}</a>.
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
         We can also help you complete an order directly.
       </p>
     </InfoPage>

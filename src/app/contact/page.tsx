@@ -5,21 +5,17 @@ import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact Us | SwagCentral",
-  description: `Contact SwagCentral on WhatsApp ${SITE.whatsapp} or email ${SITE.email} for order, payment or download help.`,
+  description: `Contact SwagCentral by email at ${SITE.email} for order, payment or download help.`,
   alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
   return (
     <InfoPage title="Contact Us" intro="We usually reply within a few hours, 10 AM to 8 PM IST.">
-      <h2>WhatsApp (fastest)</h2>
-      <p>
-        <a href={SITE.whatsappLink}>{SITE.whatsapp}</a> — message us with your order ID or the email you used at
-        checkout.
-      </p>
       <h2>Email</h2>
       <p>
-        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a> — write to us with your order ID or the email you used
+        at checkout. Email is the only way to reach us; we do not offer phone or WhatsApp support.
       </p>
       <h2>Address</h2>
       <p>

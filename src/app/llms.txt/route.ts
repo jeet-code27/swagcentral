@@ -19,7 +19,7 @@ ${SITE.name} is an online store in India (${SITE.location}) selling digital prod
 - [FAQ & Support](${absoluteUrl("/help")}): payments, delivery time, downloads and refunds
 - [Refund & Cancellation Policy](${absoluteUrl("/refund-policy")}): when orders can be refunded or cancelled
 - [About](${absoluteUrl("/about")}): who we are and how buying works
-- [Contact](${absoluteUrl("/contact")}): WhatsApp ${SITE.whatsapp}, email ${SITE.email}
+- [Contact](${absoluteUrl("/contact")}): email ${SITE.email} (email only, no phone support)
 - [Terms of Service](${absoluteUrl("/terms")}) and [Privacy Policy](${absoluteUrl("/privacy")})
 `;
 

@@ -31,12 +31,11 @@ export default function AboutPage() {
       <ul>
         <li>Curated bundles in categories people actually use.</li>
         <li>Fair prices in Indian rupees with secure payments.</li>
-        <li>Real support on WhatsApp and email if you get stuck.</li>
+        <li>Real support by email if you get stuck.</li>
       </ul>
       <h2>Contact</h2>
       <p>
-        {SITE.name}, {SITE.location}. Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or WhatsApp{" "}
-        <a href={SITE.whatsappLink}>{SITE.whatsapp}</a>. See our <Link href="/contact">contact page</Link> for more.
+        {SITE.name}, {SITE.location}. Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. See our <Link href="/contact">contact page</Link> for more.
       </p>
     </InfoPage>
   );

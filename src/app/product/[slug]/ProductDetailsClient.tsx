@@ -237,9 +237,7 @@ export default function ProductDetailsClient({
                 Download links emailed to you within 12 hours of payment.
               </span>
               <a
-                href="https://wa.me/919821774565"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/contact"
                 className="text-[#ff5500] hover:underline font-bold flex items-center gap-1"
               >
                 <Headphones size={12} />
@@ -317,7 +315,7 @@ export default function ProductDetailsClient({
                     "Download links delivered by email within 12 hours",
                     "One-time payment, lifetime access",
                     "Works on mobile, tablet and desktop",
-                    "Support on WhatsApp",
+                    "Support by email",
                   ]
               ).map((feat: string, i: number) => (
                 <div key={i} className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
@@ -363,9 +361,9 @@ export default function ProductDetailsClient({
                 </p>
               </div>
               <p className="text-xs text-gray-500">
-                Need help with a link or download? WhatsApp us at{" "}
-                <a href="https://wa.me/919821774565" className="text-[#ff5500] font-semibold">
-                  +91 9821774565
+                Need help with a link or download? Email us at{" "}
+                <a href="mailto:swagcentral012@gmail.com" className="text-[#ff5500] font-semibold break-all">
+                  swagcentral012@gmail.com
                 </a>
                 .
               </p>
